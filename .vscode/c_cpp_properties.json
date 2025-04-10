@@ -6,6 +6,9 @@
                 "~/.pebble-sdk/SDKs/4.3/sdk-core/pebble/basalt/include",
                 "${workspaceFolder}/**"
             ],
+            "forcedInclude": [
+                "${workspaceFolder}/**/*.auto.h"
+            ],
             "defines": [],
             "compilerPath": "~/pebble-dev/pebble-sdk-4.6-rc2-linux64/arm-cs-tools/bin/arm-none-eabi-gcc",
             "cStandard": "c11",
@@ -13,4 +16,4 @@
         }
     ],
     "version": 4
-}
+}   

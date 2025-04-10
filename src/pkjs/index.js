@@ -1,31 +1,13 @@
+"use strict"
+
 var Clay = require('pebble-clay');
 var clayConfig = require('./config.json');
 var clay = new Clay(clayConfig, null, { autoHandleEvents: false });
 
-var Config = function (name) {
-    var load = function () {
-        try {
-            var config = localStorage.getItem(name);
-            if (config !== null) {
-                return JSON.parse(config);
-            }
-        } catch (e) { }
-        return {};
-    };
-    var store = function (data) {
-        try {
-            localStorage.setItem(name, JSON.stringify(data));
-        } catch (e) { }
-    };
-    return {
-        load: load,
-        store: store
-    }
-};
-
 var Weather = function (pebble) {
-    var METHOD = 'GET';
+    var GET = 'GET';
     var BASE_URL = 'https://api.open-meteo.com/v1/forecast';
+    var BASE_GEOCODE_URL = 'https://photon.komoot.io/api';
     var ICONS = {
         0: 'a',
         1: 'b',
@@ -70,9 +52,36 @@ var Weather = function (pebble) {
         return i.charCodeAt(0);
     }
 
+    var fetchLocation = function (location, callbackSuccess, callbackError) {
+        var url = BASE_GEOCODE_URL + '?limit=1&q=' + location;
+        console.log("Fetching location " + url);
+        var req = new XMLHttpRequest();
+        req.open(GET, url, true);
+        req.onloadend = function () {
+            if (req.status === 200) {
+                var resp = JSON.parse(req.responseText);
+                if (resp.features.length != 1) {
+                    callbackError("geocode failed: features.length != 1")
+                    return;
+                }
+                var coords = resp.features[0].geometry.coordinates;
+                var lat = coords[1];
+                var lon = coords[0];
+                console.log("geocode success: long:" + lon + ", lat:" + lat);
+                callbackSuccess(lat, lon);
+            }
+        }
+        req.send(null);
+    }
+
     var fetchWeatherForLocation = function (location) {
-        var query = 'q=' + location;
-        fetchWeather(query);
+        var loc = fetchLocation(location, fetchWeatherForCoordinates, function (e) {
+            console.log(e);
+            console.log("pebble.sendAppMessage({'AppKeyWeatherFailed': 1})")
+            pebble.sendAppMessage({
+                'AppKeyWeatherFailed': 1
+            });
+        });
     }
 
     var fetchWeatherForCoordinates = function (latitude, longitude) {
@@ -87,24 +96,22 @@ var Weather = function (pebble) {
         // }
         var req = new XMLHttpRequest();
         query += '&current=temperature_2m,weather_code,is_day'
-        // console.log('query: ' + query);
-        req.open(METHOD, BASE_URL + '?' + query, true);
-        req.onload = function () {
-            if (req.readyState === 4) {
-                if (req.status === 200) {
-                    var response = JSON.parse(req.responseText);
-                    var temperature = Math.round(response.current.temperature_2m);
-                    var icon = parseIcon(response.current.weather_code, !!response.current.is_day);
-                    var data = {
-                        'AppKeyWeatherIcon': icon,
-                        'AppKeyWeatherTemperature': temperature
-                    };
-                    console.log('fetchWeather sendAppMessage:', JSON.stringify(data));
-                    Pebble.sendAppMessage(data);
-                } else {
-                    console.log('error: fetchWeather AppKeyWeatherFailed:', JSON.stringify(req));
-                    Pebble.sendAppMessage({ 'AppKeyWeatherFailed': 1 });
-                }
+        console.log('query: ' + query);
+        req.open(GET, BASE_URL + '?' + query, true);
+        req.onloadend = function () {
+            if (req.status === 200) {
+                var response = JSON.parse(req.responseText);
+                var temperature = Math.round(response.current.temperature_2m);
+                var icon = parseIcon(response.current.weather_code, !!response.current.is_day);
+                var data = {
+                    'AppKeyWeatherIcon': icon,
+                    'AppKeyWeatherTemperature': temperature
+                };
+                console.log('fetchWeather sendAppMessage:', JSON.stringify(data));
+                pebble.sendAppMessage(data);
+            } else {
+                console.log('error: fetchWeather AppKeyWeatherFailed:', JSON.stringify(req));
+                pebble.sendAppMessage({ 'AppKeyWeatherFailed': 1 });
             }
         };
         req.send(null);
@@ -119,7 +126,7 @@ var Weather = function (pebble) {
     var locationError = function (err) {
         //console.log('error: AppKeyWeatherFailed: locationError');
         pebble.sendAppMessage({
-            'AppKeyWeatherFailed': 0
+            'AppKeyWeatherFailed': 1
         });
     }
 
@@ -127,8 +134,8 @@ var Weather = function (pebble) {
         var dict = e.payload;
         //console.log('appmessage:', JSON.stringify(dict));
         if (dict['AppKeyWeatherRequest']) {
-            var config = Config('config');
-            var location = config.load().location;
+            var location = localStorage.getItem("local.WeatherLocation")
+            console.log("got location " + location)
             if (location) {
                 fetchWeatherForLocation(location);
             } else {
@@ -158,8 +165,11 @@ Pebble.addEventListener('webviewclosed', function (e) {
     // Get the keys and values from each config item
     var dict = clay.getSettings(e.response, false);
 
-    for (const key in dict) {
-        if (key.startsWith("local.")) { // Cheat the system so that persistent keys are still saved on device, but are not sent over to device
+    for (var key in dict) {
+        // HACK: Cheat the system so that persistent keys are still saved on by Clay. 
+        // Set local storage for easy access but are not sent over to device
+        if (key.startsWith("local.")) {
+            localStorage.setItem(key, dict[key].value)
             dict[key] = undefined;
             continue;
         }

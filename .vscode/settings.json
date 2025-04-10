@@ -1,7 +1,8 @@
 {
     "files.associations": {
+        "geometry.h": "c",
         "pebble.h": "c",
-        "consts.h": "c",
-        "pebble_fonts.h": "c"
+        "message_keys.auto.h": "c",
+        "messenger.h": "c"
     }
 }
