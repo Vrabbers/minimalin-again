@@ -52,21 +52,3 @@ typedef enum
 #ifndef CONFIG_MILITARY_TIME
 #define CONFIG_MILITARY_TIME false
 #endif
-
-ConfValue CONF_DEFAULTS[CONF_SIZE] = {
-    {.key = ConfigKeyMinuteHandColor, .type = ColorConf, .value = 0xffffff},
-    {.key = ConfigKeyHourHandColor, .type = ColorConf, .value = PBL_IF_COLOR_ELSE(0xff0000, 0xffffff)},
-    {.key = ConfigKeyBackgroundColor, .type = ColorConf, .value = 0x000000},
-    {.key = ConfigKeyDateColor, .type = ColorConf, .value = PBL_IF_COLOR_ELSE(0x555555, 0xffffff)},
-    {.key = ConfigKeyTimeColor, .type = ColorConf, .value = PBL_IF_COLOR_ELSE(0xaaaaaa, 0xffffff)},
-    {.key = ConfigKeyInfoColor, .type = ColorConf, .value = PBL_IF_COLOR_ELSE(0x555555, 0xffffff)},
-    {.key = ConfigKeyBluetoothIcon, .type = IntConf, .value = CONFIG_BLUETOOTH_ICON},
-    {.key = ConfigKeyTemperatureUnit, .type = IntConf, .value = CONFIG_TEMPERATURE_UNIT},
-    {.key = ConfigKeyRefreshRate, .type = IntConf, .value = 20},
-    {.key = ConfigKeyDateDisplayed, .type = BoolConf, .value = CONFIG_DATE_DISPLAYED},
-    {.key = ConfigKeyRainbowMode, .type = BoolConf, .value = PBL_IF_COLOR_ELSE(CONFIG_RAINBOW_MODE, false)},
-    {.key = ConfigKeyWeatherEnabled, .type = BoolConf, .value = CONFIG_WEATHER_ENABLED},
-    {.key = ConfigKeyVibrateOnTheHour, .type = BoolConf, .value = false},
-    {.key = ConfigKeyMilitaryTime, .type = BoolConf, .value = CONFIG_MILITARY_TIME},
-    {.key = ConfigKeyHealthEnabled, .type = BoolConf, .value = false},
-    {.key = ConfigKeyBatteryDisplayedAt, .type = IntConf, .value = -1}};

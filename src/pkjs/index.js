@@ -2,7 +2,8 @@
 
 var Clay = require('pebble-clay');
 var clayConfig = require('./config.json');
-var clay = new Clay(clayConfig, null, { autoHandleEvents: false });
+var clayFunction = require('./clayFunction.js')
+var clay = new Clay(clayConfig, clayFunction, { autoHandleEvents: false });
 
 var Weather = function (pebble) {
     var GET = 'GET';
@@ -61,6 +62,7 @@ var Weather = function (pebble) {
             if (req.status === 200) {
                 var resp = JSON.parse(req.responseText);
                 if (resp.features.length != 1) {
+                    localStorage.setItem("lastCoordFetch", "failed")
                     callbackError("geocode failed: features.length != 1")
                     return;
                 }
@@ -68,6 +70,8 @@ var Weather = function (pebble) {
                 var lat = coords[1];
                 var lon = coords[0];
                 console.log("geocode success: long:" + lon + ", lat:" + lat);
+                localStorage.setItem("lastCoordFetch", + "lat:" + lat + ", long:" + lon)
+
                 callbackSuccess(lat, lon);
             }
         }
@@ -94,6 +98,7 @@ var Weather = function (pebble) {
         //   console.error("no weather API key");
         //   Pebble.sendAppMessage({ 'AppKeyWeatherFailed': 1 });
         // }
+        localStorage.removeItem("lastCoordFetch");
         var req = new XMLHttpRequest();
         query += '&current=temperature_2m,weather_code,is_day'
         console.log('query: ' + query);
@@ -145,13 +150,10 @@ var Weather = function (pebble) {
     });
 }(Pebble);
 
-
 Pebble.addEventListener('ready', function (e) {
     var data = { 'AppKeyJsReady': 1 };
     Pebble.sendAppMessage(data);
 });
-
-
 
 Pebble.addEventListener('showConfiguration', function (e) {
     Pebble.openURL(clay.generateUrl());
@@ -190,46 +192,3 @@ Pebble.addEventListener('webviewclosed', function (e) {
         console.log('Failed to send config data');
     });
 });
-
-// Pebble.addEventListener('showConfiguration', function() {
-//   var URL = 'https://lanrat.github.io/minimalin-reborn/';
-//   var config = Config('config');
-//   var params = config.load();
-//   params.platform = Pebble.getActiveWatchInfo().platform;
-//   var query = '?config=' + encodeURIComponent(JSON.stringify(params));
-//   Pebble.openURL(URL + query);
-// });
-
-// Pebble.addEventListener('webviewclosed', function(e) {
-//   if(e.response){
-//     var config = Config('config');
-//     var configData = JSON.parse(decodeURIComponent(e.response));
-//     config.store(configData);
-//     var mapping = {
-//       minute_hand_color: 'AppKeyMinuteHandColor',
-//       hour_hand_color: 'AppKeyHourHandColor',
-//       background_color: 'AppKeyBackgroundColor',
-//       time_color: 'AppKeyTimeColor',
-//       info_color: 'AppKeyInfoColor',
-//       date_displayed: 'AppKeyDateDisplayed',
-//       health_enabled: 'AppKeyHealthEnabled',
-//       weather_enabled: 'AppKeyWeatherEnabled',
-//       bluetooth_icon: 'AppKeyBluetoothIcon',
-//       battery_displayed_at: 'AppKeyBatteryDisplayedAt',
-//       temperature_unit: 'AppKeyTemperatureUnit',
-//       refresh_rate: 'AppKeyRefreshRate',
-//       rainbow_mode: 'AppKeyRainbowMode',
-//       vibrate_on_the_hour: 'AppKeyVibrateOnTheHour',
-//       military_time: 'AppKeyMilitaryTime'
-//     };
-//     var dict = { AppKeyConfig: 1 };
-//     for(var key in mapping){
-//       if (mapping.hasOwnProperty(key)) {
-//         dict[mapping[key]] = configData[key];
-//       }
-//     }
-//     dict['AppKeyConfig'] = 1;
-//     Pebble.sendAppMessage(dict, function() {}, function() {});
-//   }
-// });
-

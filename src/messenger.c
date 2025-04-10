@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include "messenger.h"
 
-
 #define i(string, ...) APP_LOG (APP_LOG_LEVEL_INFO, string, ##__VA_ARGS__)
 
 static void inbox_received_handler(DictionaryIterator *iter, void *context)

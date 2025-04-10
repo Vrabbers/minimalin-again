@@ -25,7 +25,7 @@
         },
         {
           "type": "font",
-          "characterRegex": "[0-9:°a-izA-IZk.yw\\-]",
+          "characterRegex": "[0-9:°a-izA-IZk.yxw\\-]",
           "name": "FONT_NUPE_23",
           "file": "fonts/nupe.ttf"
         }

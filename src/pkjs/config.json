@@ -74,12 +74,14 @@
       {
         "type": "toggle",
         "messageKey": "AppKeyWeatherEnabled",
-        "label": "Weather"
+        "id": "weatherEnabled",
+        "label": "Weather Enabled"
       },
       {
         "type": "input",
         "messageKey": "local.WeatherLocation",
-        "label": "Fixed Location (leave empty to use phone location)"
+        "label": "Fixed Location (leave empty to use phone location)",
+        "group": "weather"
       },
       {
         "type": "select",
@@ -95,7 +97,9 @@
             "label": "Fahrenheit",
             "value": 1
           }
-        ]
+        ],
+        "group": "weather"
+
       },
       {
         "type": "slider",
@@ -105,7 +109,8 @@
         "description": "In minutes",
         "min": 10,
         "max": 120,
-        "step": 10
+        "step": 10,
+        "group": "weather"
       },
       {
         "type": "select",

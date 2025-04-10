@@ -1,3 +1,5 @@
+#pragma once
+
 typedef void (*MessageCallback)(DictionaryIterator *iter, Tuple *tuple);
 typedef void (*MessengerCallback)(DictionaryIterator *iter);
 
