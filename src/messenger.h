@@ -1,16 +1,18 @@
-typedef void(* MessageCallback)(DictionaryIterator * iter, Tuple * tuple);
-typedef void(* MessengerCallback)(DictionaryIterator * iter);
+typedef void (*MessageCallback)(DictionaryIterator *iter, Tuple *tuple);
+typedef void (*MessengerCallback)(DictionaryIterator *iter);
 
-typedef struct {
+typedef struct
+{
   uint32_t key;
   MessageCallback callback;
 } Message;
 
-typedef struct {
-  Message * messages;
+typedef struct
+{
+  Message *messages;
   MessengerCallback callback;
   int32_t size;
 } Messenger;
 
-Messenger * messenger_create(const int32_t size, MessengerCallback callback, Message * messages);
-Messenger * messenger_destroy(Messenger * messenger);
+Messenger *messenger_create(const int32_t size, MessengerCallback callback, const Message *messages);
+Messenger *messenger_destroy(Messenger *messenger);

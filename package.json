@@ -1,8 +1,10 @@
 {
-  "version": "2.1.0",
-  "author": "lanrat",
+  "version": "3.1.0",
+  "author": "Vrabbers",
   "private": true,
-  "dependencies": {},
+  "dependencies": {
+    "pebble-clay": "^1.0.4"
+  },
   "keywords": [
     "pebble-app"
   ],
@@ -23,14 +25,14 @@
         },
         {
           "type": "font",
-          "characterRegex": "[0-9:\u00b0a-izA-IZk.yw\\-]",
+          "characterRegex": "[0-9:°a-izA-IZk.yw\\-]",
           "name": "FONT_NUPE_23",
           "file": "fonts/nupe.ttf"
         }
       ]
     },
     "projectType": "native",
-    "uuid": "e8e629e5-bdc8-4a51-be35-1ffbfbc149e0",
+    "uuid": "50eadc75-7dbd-4611-94c4-fa315433f881",
     "messageKeys": {
       "AppKeyMinuteHandColor": 0,
       "AppKeyHourHandColor": 1,
@@ -54,8 +56,8 @@
       "AppKeyHealthEnabled": 19,
       "AppKeyBatteryDisplayedAt": 20
     },
-    "enableMultiJS": false,
-    "displayName": "Minimalin Reborn",
+    "enableMultiJS": true,
+    "displayName": "Minimalin Renaissance",
     "watchapp": {
       "onlyShownOnCommunication": false,
       "hiddenApp": false,
@@ -73,5 +75,5 @@
       "health"
     ]
   },
-  "name": "minimalin-reborn"
+  "name": "minimalin-renaissance"
 }

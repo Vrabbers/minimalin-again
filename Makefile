@@ -7,18 +7,9 @@ NAME=$(shell cat package.json | grep '"name":' | head -1 | sed 's/,//g' |sed 's/
 
 all: build
 
-init_overlays:
-	mkdir -p resources/data
-	touch resources/data/OVL_aplite.bin
-	touch resources/data/OVL_basalt.bin
-	touch resources/data/OVL_chalk.bin
-	touch resources/data/OVL_diorite.bin
 
-build: weather-api init_overlays
+build: init_overlays
 	pebble build
-
-weather-api:
-	@echo "var API_ID = '$(OPENWEATHERMAP_API_KEY)';" > src/js/weather_id.js
 
 config:
 	pebble emu-app-config --emulator $(PEBBLE_EMULATOR)

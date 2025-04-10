@@ -1,0 +1,16 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "~/.pebble-sdk/SDKs/4.3/sdk-core/pebble/basalt/include",
+                "${workspaceFolder}/**"
+            ],
+            "defines": [],
+            "compilerPath": "~/pebble-dev/pebble-sdk-4.6-rc2-linux64/arm-cs-tools/bin/arm-none-eabi-gcc",
+            "cStandard": "c11",
+            "intelliSenseMode": "linux-gcc-arm"
+        }
+    ],
+    "version": 4
+}

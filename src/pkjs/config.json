@@ -1,0 +1,152 @@
+[
+  {
+    "type": "section",
+    "items": [
+      {
+        "type": "heading",
+        "defaultValue": "Theme"
+      },
+      {
+        "type": "color",
+        "messageKey": "AppKeyHourHandColor",
+        "label": "Hour Hand Color",
+        "defaultValue": "#FF0000"
+      },
+      {
+        "type": "color",
+        "messageKey": "AppKeyMinuteHandColor",
+        "label": "Minute Hand Color",
+        "defaultValue": "#FFFFFF"
+      },
+      {
+        "type": "toggle",
+        "messageKey": "AppKeyRainbowMode",
+        "label": "Use Rainbow Minute Hand",
+        "description": "Overrides minute hand color"
+      },
+      {
+        "type": "color",
+        "messageKey": "AppKeyTimeColor",
+        "label": "Numbers and Ticks Color",
+        "defaultValue": "#AAAAAA"
+      },
+      {
+        "type": "color",
+        "messageKey": "AppKeyBackgroundColor",
+        "label": "Background Color",
+        "defaultValue": "#000000"
+      },
+      {
+        "type": "toggle",
+        "messageKey": "AppKeyVibrateOnTheHour",
+        "label": "Vibrate on Every Full Hour",
+        "description": "Disabled if sleeping tracked by Pebble Health"
+      },
+      {
+        "type": "toggle",
+        "messageKey": "AppKeyMilitaryTime",
+        "label": "24h Format"
+      },
+      {
+        "type": "button",
+        "defaultValue": "Reset Default Themes"
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "items": [
+      {
+        "type": "heading",
+        "defaultValue": "Complications"
+      },
+      {
+        "type": "color",
+        "messageKey": "AppKeyInfoColor",
+        "label": "Complications Color",
+        "defaultValue": "#555555"
+      },
+      {
+        "type": "toggle",
+        "messageKey": "AppKeyDateDisplayed",
+        "label": "Date"
+      },
+      {
+        "type": "toggle",
+        "messageKey": "AppKeyWeatherEnabled",
+        "label": "Weather"
+      },
+      {
+        "type": "input",
+        "messageKey": "local.WeatherLocation",
+        "label": "Fixed Location (leave empty to use phone location)"
+      },
+      {
+        "type": "select",
+        "messageKey": "AppKeyTemperatureUnit",
+        "defaultValue": 0,
+        "label": "Temperature Unit",
+        "options": [
+          {
+            "label": "Celsius",
+            "value": 0
+          },
+          {
+            "label": "Fahrenheit",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "type": "slider",
+        "messageKey": "AppKeyRefreshRate",
+        "defaultValue": 30,
+        "label": "Weather Refresh Rate",
+        "description": "In minutes",
+        "min": 10,
+        "max": 120,
+        "step": 10
+      },
+      {
+        "type": "select",
+        "messageKey": "AppKeyBluetoothIcon",
+        "defaultValue": 1,
+        "label": "Bluetooth Disconnected Icon",
+        "options": [
+          {
+            "label": "None",
+            "value": 0
+          },
+          {
+            "label": "Bluetooth Icon",
+            "value": 1
+          },
+          {
+            "label": "Broken Heart",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "type": "slider",
+        "messageKey": "AppKeyBatteryDisplayedAt",
+        "defaultValue": -1,
+        "label": "Battery Icon Threshold",
+        "description": "Set to -1 to disable",
+        "min": -1,
+        "max": 100
+      },
+      {
+        "type": "toggle",
+        "messageKey": "AppKeyHealthEnabled",
+        "defaultValue": false,
+        "label": "Show Steps",
+        "description": "Requires Pebble Health"
+      }
+    ]
+  },
+  {
+    "type": "submit",
+    "defaultValue": "Save"
+  }
+]

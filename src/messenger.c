@@ -17,7 +17,7 @@ static void inbox_received_handler(DictionaryIterator * iter, void *context) {
   messenger->callback(iter);
 }
 
-Messenger * messenger_create(const int32_t size, MessengerCallback callback, Message * messages){
+Messenger * messenger_create(const int32_t size, MessengerCallback callback, const Message * messages){
   Messenger * messenger = (Messenger *) malloc(sizeof(Messenger));
   int32_t array_size = size * sizeof(Message);
   messenger->messages = (Message *) malloc(array_size);

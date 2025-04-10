@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "pebble.h": "c",
+        "consts.h": "c",
+        "pebble_fonts.h": "c"
+    }
+}
