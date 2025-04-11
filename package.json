@@ -58,7 +58,7 @@
       "AppKeyQuietTimeVisible": 21
     },
     "enableMultiJS": true,
-    "displayName": "Minimalin Renaissance",
+    "displayName": "Minimalin Again",
     "watchapp": {
       "onlyShownOnCommunication": false,
       "hiddenApp": false,
@@ -76,5 +76,5 @@
       "health"
     ]
   },
-  "name": "minimalin-renaissance"
+  "name": "minimalin-again"
 }

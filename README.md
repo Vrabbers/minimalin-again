@@ -1,8 +1,9 @@
-# minimalin reborn
+# minimalin again
 
-[![banner](design/store/marketing-banner.png)](https://apps.rebble.io/en_US/application/63792649c6c24a000a815e70)
+[![banner](design/store/marketing-banner.png)](#)
 
-Updated fork based on the original minimalin watchface from [GringerApps](https://github.com/GringerApps/minimalin).
+Updated fork based on the original *minimalin* watchface from [GringerApps](https://github.com/GringerApps/minimalin) and 
+the *minimalin reborn* fork from [lanrat](https://github.com/lanrat/minimalin-reborn).
 
 Minimalin is a fully customizable watchface that blends analog and digital for a modern and elegant look.
 
@@ -17,9 +18,9 @@ Some key features of Minimalin:
 * Bluetooth disconnected icon (pick your favorite)
 * Rainbow hand :rainbow:
 
-Go and grab it [here](https://apps.rebble.io/en_US/application/63792649c6c24a000a815e70).
+Go and grab it [here](#).
 
-[Test releases here](https://github.com/lanrat/minimalin-reborn/releases)
+[Test releases here](#)
 
 ![Preview](design/minimalin_preview.png)
 
@@ -30,18 +31,17 @@ Go and grab it [here](https://apps.rebble.io/en_US/application/63792649c6c24a000
 
 ## Dependencies
 
-* [Ractive](https://github.com/ractivejs/ractive/blob/dev/LICENSE.md)
-* [Slate](https://github.com/pebble/slate/blob/master/LICENSE)
+* [Clay](https://github.com/pebble/clay)
 
 ## Contributing
 
-If you would like a new feature, please [open an issue here](https://github.com/lanrat/minimalin-reborn/issues) and we'll see what we can do.
+If you would like a new feature, please [open an issue here](#) and we'll see what we can do.
 
 If you would like to contribute, that's awesome! But we would like you to follow these rules:
 
 Check if an issue is already created for the issue/feature that you'd like to work on. If you'd like to work on a feature, please create an issue first and describe what you'd like to do. If your changes impact the design of the watchface or the configuration page, please provide designs and/or screenshots of your idea.
 This way we'll be able to discuss the idea and see if it matches our vision before working on a PR.
 
-## Credits
+## Acknowledgements
 
-Thanks to [OpenWeatherMap](http://openweathermap.org/) for providing us with a free API key.
+Thanks to [OpenMeteo](https://open-meteo.com/) for providing an open weather API and [photon](https://photon.komoot.io/) for providing an open geocoding API. 
