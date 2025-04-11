@@ -37,19 +37,21 @@
         "defaultValue": "#000000"
       },
       {
+        "type": "color",
+        "messageKey": "AppKeyInfoColor",
+        "label": "Complications Color",
+        "defaultValue": "#555555"
+      },
+      {
         "type": "toggle",
         "messageKey": "AppKeyVibrateOnTheHour",
         "label": "Vibrate on Every Full Hour",
-        "description": "Disabled if sleeping tracked by Pebble Health"
+        "description": "Disabled if sleeping tracked by Pebble Health or in Quiet Mode"
       },
       {
         "type": "toggle",
         "messageKey": "AppKeyMilitaryTime",
         "label": "24h Format"
-      },
-      {
-        "type": "button",
-        "defaultValue": "Reset Default Themes"
       }
     ]
   },
@@ -61,15 +63,14 @@
         "defaultValue": "Complications"
       },
       {
-        "type": "color",
-        "messageKey": "AppKeyInfoColor",
-        "label": "Complications Color",
-        "defaultValue": "#555555"
-      },
-      {
         "type": "toggle",
         "messageKey": "AppKeyDateDisplayed",
         "label": "Date"
+      },
+      {
+        "type": "toggle",
+        "messageKey": "AppKeyQuietTimeVisible",
+        "label": "Quiet Time Icon"
       },
       {
         "type": "toggle",

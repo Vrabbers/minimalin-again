@@ -35,6 +35,7 @@ typedef enum
     AppKeyMilitaryTime,
     AppKeyHealthEnabled,
     AppKeyBatteryDisplayedAt,
+    AppKeyQuietTimeVisible
 } AppKey;
 
 typedef enum
@@ -103,22 +104,23 @@ static void mark_dirty_minute_hand_layer();
 static void fetch_step(Context *const context);
 
 static const ConfValue CONF_DEFAULTS[CONF_SIZE] = {
-    {.key = ConfigKeyMinuteHandColor, .type = ColorConf, .value = 0xffffff},
-    {.key = ConfigKeyHourHandColor, .type = ColorConf, .value = PBL_IF_COLOR_ELSE(0xff0000, 0xffffff)},
-    {.key = ConfigKeyBackgroundColor, .type = ColorConf, .value = 0x000000},
-    {.key = ConfigKeyDateColor, .type = ColorConf, .value = PBL_IF_COLOR_ELSE(0x555555, 0xffffff)},
-    {.key = ConfigKeyTimeColor, .type = ColorConf, .value = PBL_IF_COLOR_ELSE(0xaaaaaa, 0xffffff)},
-    {.key = ConfigKeyInfoColor, .type = ColorConf, .value = PBL_IF_COLOR_ELSE(0x555555, 0xffffff)},
-    {.key = ConfigKeyBluetoothIcon, .type = IntConf, .value = CONFIG_BLUETOOTH_ICON},
-    {.key = ConfigKeyTemperatureUnit, .type = IntConf, .value = CONFIG_TEMPERATURE_UNIT},
-    {.key = ConfigKeyRefreshRate, .type = IntConf, .value = 20},
-    {.key = ConfigKeyDateDisplayed, .type = BoolConf, .value = CONFIG_DATE_DISPLAYED},
-    {.key = ConfigKeyRainbowMode, .type = BoolConf, .value = PBL_IF_COLOR_ELSE(CONFIG_RAINBOW_MODE, false)},
-    {.key = ConfigKeyWeatherEnabled, .type = BoolConf, .value = CONFIG_WEATHER_ENABLED},
-    {.key = ConfigKeyVibrateOnTheHour, .type = BoolConf, .value = false},
-    {.key = ConfigKeyMilitaryTime, .type = BoolConf, .value = CONFIG_MILITARY_TIME},
-    {.key = ConfigKeyHealthEnabled, .type = BoolConf, .value = false},
-    {.key = ConfigKeyBatteryDisplayedAt, .type = IntConf, .value = -1}};
+    {.key = ConfigKeyMinuteHandColor, .value = 0xffffff},
+    {.key = ConfigKeyHourHandColor, .value = PBL_IF_COLOR_ELSE(0xff0000, 0xffffff)},
+    {.key = ConfigKeyBackgroundColor, .value = 0x000000},
+    {.key = ConfigKeyDateColor, .value = PBL_IF_COLOR_ELSE(0x555555, 0xffffff)},
+    {.key = ConfigKeyTimeColor, .value = PBL_IF_COLOR_ELSE(0xaaaaaa, 0xffffff)},
+    {.key = ConfigKeyInfoColor, .value = PBL_IF_COLOR_ELSE(0x555555, 0xffffff)},
+    {.key = ConfigKeyBluetoothIcon, .value = CONFIG_BLUETOOTH_ICON},
+    {.key = ConfigKeyTemperatureUnit, .value = CONFIG_TEMPERATURE_UNIT},
+    {.key = ConfigKeyRefreshRate, .value = 20},
+    {.key = ConfigKeyDateDisplayed, .value = CONFIG_DATE_DISPLAYED},
+    {.key = ConfigKeyRainbowMode, .value = PBL_IF_COLOR_ELSE(CONFIG_RAINBOW_MODE, false)},
+    {.key = ConfigKeyWeatherEnabled, .value = CONFIG_WEATHER_ENABLED},
+    {.key = ConfigKeyVibrateOnTheHour, .value = false},
+    {.key = ConfigKeyMilitaryTime, .value = CONFIG_MILITARY_TIME},
+    {.key = ConfigKeyHealthEnabled, .value = false},
+    {.key = ConfigKeyBatteryDisplayedAt, .value = -1},
+    {.key = ConfigKeyQuietTimeVisible, .value = true}};
 
 static void update_current_time()
 {
@@ -231,6 +233,12 @@ static void config_health_enabled_updated(DictionaryIterator *iter, Tuple *tuple
     text_block_set_enabled(s_steps_info, enabled);
 }
 
+static void config_quiet_time_visible_updated(DictionaryIterator *iter, Tuple *tuple)
+{
+    config_set_bool(s_config, ConfigKeyQuietTimeVisible, tuple->value->int8);
+    text_block_mark_dirty(s_watch_info);
+}
+
 static void js_ready_callback(DictionaryIterator *iter, Tuple *tuple)
 {
     s_js_ready = true;
@@ -256,7 +264,6 @@ static void weather_requested_callback(DictionaryIterator *iter, Tuple *tuple)
 
 static void weather_request_failed_callback(DictionaryIterator *iter, Tuple *tuple)
 {
-    const Tuple *const failed_tuple = dict_find(iter, AppKeyWeatherFailed);
     s_context.weather.failed = true;
     persist_write_data(PersistKeyWeather, &s_context.weather, sizeof(Weather));
     text_block_mark_dirty(s_weather_info);
@@ -511,27 +518,39 @@ static void schedule_weather_request(const int timeout)
     }
 }
 
-// Battery + Bluetooth
+// Battery + Bluetooth + Quiet Time
+
+static void char_concat(char *buf, char ch)
+{
+    int len = strlen(buf);
+    buf[len] = ch;
+    buf[len + 1] = 0;
+}
 
 static void watch_info_update_proc(TextBlock *block)
 {
     const Context *const context = (Context *)text_block_get_context(block);
     const Config *const config = context->config;
-    char info_buffer[4] = {0};
+    char info_buffer[8] = {0};
     const BluetoothIcon bluetooth_icon = config_get_int(config, ConfigKeyBluetoothIcon);
     const bool bluetooth_disconneted = !context->bluetooth_connected;
     const bool bluetooth_icon_set = bluetooth_icon != NoIcon;
     if (bluetooth_disconneted && bluetooth_icon_set)
     {
-        strncat(info_buffer, bluetooth_icon == Bluetooth ? "z" : "Z", 2);
+        char_concat(info_buffer, bluetooth_icon == Bluetooth ? 'z' : 'Z');
     }
     const int battery_threshold = config_get_int(config, ConfigKeyBatteryDisplayedAt);
     const BatteryChargeState charge_state = context->charge_state;
     const bool battery_below_threshold = charge_state.charge_percent < battery_threshold;
     if (battery_below_threshold)
     {
-        strncat(info_buffer, "w", 2);
+        char_concat(info_buffer, 'w');
     }
+    if (quiet_time_is_active() && config_get_bool(s_config, ConfigKeyQuietTimeVisible))
+    {
+        char_concat(info_buffer, 'q');
+    }
+
     const GColor info_color = config_get_color(s_config, ConfigKeyInfoColor);
     text_block_set_text(block, info_buffer, info_color);
 }
@@ -575,7 +594,8 @@ static void update_watch_info_layer_visibility()
     const Config *const config = s_context.config;
     const bool battery_icon_visible = s_context.charge_state.charge_percent < config_get_int(config, ConfigKeyBatteryDisplayedAt);
     const bool bt_icon_visible = !s_context.bluetooth_connected && config_get_int(config, ConfigKeyBluetoothIcon) != NoIcon;
-    text_block_set_enabled(s_watch_info, battery_icon_visible || bt_icon_visible);
+    const bool quiet_time_visible = quiet_time_is_active() && config_get_bool(config, ConfigKeyQuietTimeVisible);
+    text_block_set_enabled(s_watch_info, battery_icon_visible || bt_icon_visible || quiet_time_visible);
 }
 
 static void bt_handler(bool connected)
@@ -609,8 +629,9 @@ static void tick_handler(struct tm *tick_time, TimeUnits units_changed)
 {
     if (HOUR_UNIT & units_changed)
     {
-        bool vibrate_on_the_hour = config_get_bool(s_config, ConfigKeyVibrateOnTheHour);
-        if (vibrate_on_the_hour)
+        const bool vibrate_on_the_hour = config_get_bool(s_config, ConfigKeyVibrateOnTheHour);
+        const bool quiet_time = quiet_time_is_active();
+        if (vibrate_on_the_hour && !quiet_time)
         {
             if (PBL_IF_HEALTH_ELSE(config_get_bool(s_config, ConfigKeyHealthEnabled), false) ||
                 !(health_service_peek_current_activities() &
@@ -766,6 +787,8 @@ static void init()
 {
     static const Message messages[] = {
         {AppKeyJsReady, js_ready_callback},
+        {AppKeyWeatherTemperature, weather_requested_callback},
+        {AppKeyWeatherFailed, weather_request_failed_callback},
         {AppKeyBackgroundColor, config_background_color_updated},
         {AppKeyHourHandColor, config_hour_hand_color_updated},
         {AppKeyInfoColor, config_info_color_updated},
@@ -777,13 +800,12 @@ static void init()
         {AppKeyRefreshRate, config_refresh_rate_updated},
         {AppKeyTemperatureUnit, config_temperature_unit_updated},
         {AppKeyWeatherEnabled, config_weather_enabled_updated},
-        {AppKeyWeatherTemperature, weather_requested_callback},
         {AppKeyVibrateOnTheHour, config_hourly_vibrate_updated},
         {AppKeyMilitaryTime, config_military_time_updated},
         {AppKeyHealthEnabled, config_health_enabled_updated},
         {AppKeyBatteryDisplayedAt, config_battery_displayed_at_updated},
-        {AppKeyWeatherFailed, weather_request_failed_callback}};
-    s_messenger = messenger_create(18, messenger_callback, messages);
+        {AppKeyQuietTimeVisible, config_quiet_time_visible_updated}};
+    s_messenger = messenger_create(sizeof(messages) / sizeof(Message), messenger_callback, messages);
     s_weather_request_timeout = 0;
     s_js_ready = false;
     s_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_NUPE_23));

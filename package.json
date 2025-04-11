@@ -25,7 +25,7 @@
         },
         {
           "type": "font",
-          "characterRegex": "[0-9:°a-izA-IZk.yxw\\-]",
+          "characterRegex": "[0-9:°a-izA-IZk.qxyw\\-]",
           "name": "FONT_NUPE_23",
           "file": "fonts/nupe.ttf"
         }
@@ -54,7 +54,8 @@
       "AppKeyVibrateOnTheHour": 17,
       "AppKeyMilitaryTime": 18,
       "AppKeyHealthEnabled": 19,
-      "AppKeyBatteryDisplayedAt": 20
+      "AppKeyBatteryDisplayedAt": 20,
+      "AppKeyQuietTimeVisible": 21
     },
     "enableMultiJS": true,
     "displayName": "Minimalin Renaissance",

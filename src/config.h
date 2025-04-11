@@ -5,12 +5,6 @@
 typedef struct
 {
     int32_t key;
-    enum
-    {
-        ColorConf,
-        IntConf,
-        BoolConf
-    } type;
     int32_t value;
 } __attribute__((packed)) ConfValue;
 

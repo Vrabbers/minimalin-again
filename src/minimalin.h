@@ -29,10 +29,11 @@ typedef enum
     ConfigKeyVibrateOnTheHour,
     ConfigKeyMilitaryTime,
     ConfigKeyHealthEnabled,
-    ConfigKeyBatteryDisplayedAt
+    ConfigKeyBatteryDisplayedAt,
+    ConfigKeyQuietTimeVisible
 } ConfigKey;
 
-#define CONF_SIZE 16
+#define CONF_SIZE 17
 
 #ifndef CONFIG_BLUETOOTH_ICON
 #define CONFIG_BLUETOOTH_ICON Bluetooth
