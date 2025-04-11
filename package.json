@@ -55,7 +55,8 @@
       "AppKeyMilitaryTime": 18,
       "AppKeyHealthEnabled": 19,
       "AppKeyBatteryDisplayedAt": 20,
-      "AppKeyQuietTimeVisible": 21
+      "AppKeyQuietTimeVisible": 21,
+      "AppKeyAnimationEnabled": 22
     },
     "enableMultiJS": true,
     "displayName": "Minimalin Again",

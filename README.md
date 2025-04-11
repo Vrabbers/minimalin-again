@@ -29,6 +29,12 @@ Go and grab it [here](#).
 [MIT](LICENSE.md) for the code.
 [OFL](design/font/LICENSE.md) for the Nupe font.
 
+## Acknowledgements
+
+Thanks to *GringerApps* for the original version of [*minimalin*](https://github.com/GringerApps/minimalin) and *lanrat* for the [*minimalin reborn* fork](https://github.com/lanrat/minimalin-reborn), which this version is based on.
+
+Thanks to [OpenMeteo](https://open-meteo.com/) for providing an open weather API and [photon](https://photon.komoot.io/) for providing an open geocoding API. 
+
 ## Dependencies
 
 * [Clay](https://github.com/pebble/clay)
@@ -41,7 +47,3 @@ If you would like to contribute, that's awesome! But we would like you to follow
 
 Check if an issue is already created for the issue/feature that you'd like to work on. If you'd like to work on a feature, please create an issue first and describe what you'd like to do. If your changes impact the design of the watchface or the configuration page, please provide designs and/or screenshots of your idea.
 This way we'll be able to discuss the idea and see if it matches our vision before working on a PR.
-
-## Acknowledgements
-
-Thanks to [OpenMeteo](https://open-meteo.com/) for providing an open weather API and [photon](https://photon.komoot.io/) for providing an open geocoding API. 

@@ -35,7 +35,8 @@ typedef enum
     AppKeyMilitaryTime,
     AppKeyHealthEnabled,
     AppKeyBatteryDisplayedAt,
-    AppKeyQuietTimeVisible
+    AppKeyQuietTimeVisible,
+    AppKeyAnimationEnabled
 } AppKey;
 
 typedef enum
@@ -120,7 +121,8 @@ static const ConfValue CONF_DEFAULTS[CONF_SIZE] = {
     {.key = ConfigKeyMilitaryTime, .value = CONFIG_MILITARY_TIME},
     {.key = ConfigKeyHealthEnabled, .value = false},
     {.key = ConfigKeyBatteryDisplayedAt, .value = -1},
-    {.key = ConfigKeyQuietTimeVisible, .value = true}};
+    {.key = ConfigKeyQuietTimeVisible, .value = true},
+    {.key = ConfigKeyAnimationEnabled, .value = true}};
 
 static void update_current_time()
 {
@@ -237,6 +239,11 @@ static void config_quiet_time_visible_updated(DictionaryIterator *iter, Tuple *t
 {
     config_set_bool(s_config, ConfigKeyQuietTimeVisible, tuple->value->int8);
     text_block_mark_dirty(s_watch_info);
+}
+
+static void config_animation_enabled(DictionaryIterator *iter, Tuple *tuple)
+{
+    config_set_bool(s_config, ConfigKeyAnimationEnabled, tuple->value->int8);
 }
 
 static void js_ready_callback(DictionaryIterator *iter, Tuple *tuple)
@@ -375,7 +382,7 @@ static void date_info_update_proc(TextBlock *block)
 }
 
 // Hands
-int s_animation_percent;
+static AnimationProgress s_animation_progress;
 
 static void mark_dirty_minute_hand_layer()
 {
@@ -383,7 +390,7 @@ static void mark_dirty_minute_hand_layer()
     const bool rainbow_mode = config_get_bool(s_config, ConfigKeyRainbowMode);
     if (rainbow_mode)
     {
-        const float minute_angle = angle_minute(s_current_time);
+        const int minute_angle = angle_minute(s_current_time);
         rot_bitmap_layer_set_angle(s_rainbow_hand_layer, minute_angle);
     }
     layer_set_hidden((Layer *)s_rainbow_hand_layer, !rainbow_mode);
@@ -393,9 +400,12 @@ static void update_minute_hand_layer(Layer *layer, GContext *ctx)
 {
     if (!config_get_bool(s_config, ConfigKeyRainbowMode))
     {
-        const float start_angle = angle(270, 360);
-        const float minute_angle = angle_minute(s_current_time);
-        const float hand_angle = minute_angle - start_angle * (100 - s_animation_percent) / 100;
+        const int start_angle = angle(270, 360);
+        int hand_angle = angle_minute(s_current_time);
+        if (config_get_bool(s_config, ConfigKeyAnimationEnabled))
+        {
+            hand_angle -= start_angle * (ANIMATION_NORMALIZED_MAX - s_animation_progress) / (ANIMATION_NORMALIZED_MAX + 1);
+        }
         const GPoint hand_end = gpoint_on_circle(s_center, hand_angle, MINUTE_HAND_RADIUS);
         graphics_context_set_stroke_width(ctx, MINUTE_HAND_WIDTH);
         graphics_context_set_stroke_color(ctx, config_get_color(s_config, ConfigKeyMinuteHandColor));
@@ -405,10 +415,12 @@ static void update_minute_hand_layer(Layer *layer, GContext *ctx)
 
 static void update_hour_hand_layer(Layer *layer, GContext *ctx)
 {
-    const float hour_angle = angle_hour(s_current_time, true);
-    const float start_angle = angle(90, 360);
-    const bool rainbow_mode = config_get_bool(s_config, ConfigKeyRainbowMode);
-    const float hand_angle = rainbow_mode ? hour_angle : hour_angle - start_angle * (100 - s_animation_percent) / 100;
+    const int start_angle = angle(90, 360);
+    int hand_angle = angle_hour(s_current_time, true);
+    if (!config_get_bool(s_config, ConfigKeyAnimationEnabled) || config_get_bool(s_config, ConfigKeyRainbowMode))
+    {
+        hand_angle -= start_angle * (ANIMATION_NORMALIZED_MAX - s_animation_progress) / (ANIMATION_NORMALIZED_MAX + 1);
+    }
     const GPoint hand_end = gpoint_on_circle(s_center, hand_angle, HOUR_HAND_RADIUS);
     graphics_context_set_stroke_width(ctx, HOUR_HAND_WIDTH);
     graphics_context_set_stroke_color(ctx, config_get_color(s_config, ConfigKeyHourHandColor));
@@ -520,38 +532,32 @@ static void schedule_weather_request(const int timeout)
 
 // Battery + Bluetooth + Quiet Time
 
-static void char_concat(char *buf, char ch)
-{
-    int len = strlen(buf);
-    buf[len] = ch;
-    buf[len + 1] = 0;
-}
-
 static void watch_info_update_proc(TextBlock *block)
 {
     const Context *const context = (Context *)text_block_get_context(block);
     const Config *const config = context->config;
-    char info_buffer[8] = {0};
+    char info_buffer[4] = {0};
+    int buf_pos = 0;
     const BluetoothIcon bluetooth_icon = config_get_int(config, ConfigKeyBluetoothIcon);
     const bool bluetooth_disconneted = !context->bluetooth_connected;
     const bool bluetooth_icon_set = bluetooth_icon != NoIcon;
     if (bluetooth_disconneted && bluetooth_icon_set)
     {
-        char_concat(info_buffer, bluetooth_icon == Bluetooth ? 'z' : 'Z');
+        info_buffer[buf_pos++] = bluetooth_icon == Bluetooth ? 'z' : 'Z';
     }
     const int battery_threshold = config_get_int(config, ConfigKeyBatteryDisplayedAt);
     const BatteryChargeState charge_state = context->charge_state;
     const bool battery_below_threshold = charge_state.charge_percent < battery_threshold;
     if (battery_below_threshold)
     {
-        char_concat(info_buffer, 'w');
+        info_buffer[buf_pos++] = 'w';
     }
-    if (quiet_time_is_active() && config_get_bool(s_config, ConfigKeyQuietTimeVisible))
+    if (quiet_time_is_active() && config_get_bool(config, ConfigKeyQuietTimeVisible))
     {
-        char_concat(info_buffer, 'q');
+        info_buffer[buf_pos++] = 'q';
     }
 
-    const GColor info_color = config_get_color(s_config, ConfigKeyInfoColor);
+    const GColor info_color = config_get_color(config, ConfigKeyInfoColor);
     text_block_set_text(block, info_buffer, info_color);
 }
 
@@ -660,7 +666,7 @@ static void tick_handler(struct tm *tick_time, TimeUnits units_changed)
 static void implementation_update(Animation *animation,
                                   const AnimationProgress progress)
 {
-    s_animation_percent = ((int)progress * 100) / ANIMATION_NORMALIZED_MAX;
+    s_animation_progress = progress;
     layer_mark_dirty(s_hour_hand_layer);
     layer_mark_dirty(s_minute_hand_layer);
 }
@@ -745,15 +751,18 @@ static void main_window_load(Window *window)
 
     quadrants_update(s_quadrants, s_current_time);
 
-    Animation *animation = animation_create();
-    animation_set_curve(animation, AnimationCurveEaseInOut);
+    if (config_get_bool(s_config, ConfigKeyAnimationEnabled))
+    {
+        Animation *animation = animation_create();
+        animation_set_curve(animation, AnimationCurveEaseInOut);
 
-    animation_set_delay(animation, 0);
-    animation_set_duration(animation, 1000);
+        animation_set_delay(animation, 0);
+        animation_set_duration(animation, 1000);
 
-    animation_set_implementation(animation, &implementation);
+        animation_set_implementation(animation, &implementation);
 
-    animation_schedule(animation);
+        animation_schedule(animation);
+    }
 }
 
 static void main_window_unload(Window *window)
@@ -804,7 +813,8 @@ static void init()
         {AppKeyMilitaryTime, config_military_time_updated},
         {AppKeyHealthEnabled, config_health_enabled_updated},
         {AppKeyBatteryDisplayedAt, config_battery_displayed_at_updated},
-        {AppKeyQuietTimeVisible, config_quiet_time_visible_updated}};
+        {AppKeyQuietTimeVisible, config_quiet_time_visible_updated},
+        {AppKeyAnimationEnabled, config_animation_enabled}};
     s_messenger = messenger_create(sizeof(messages) / sizeof(Message), messenger_callback, messages);
     s_weather_request_timeout = 0;
     s_js_ready = false;

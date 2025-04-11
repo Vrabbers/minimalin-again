@@ -1,5 +1,6 @@
 #include "geometry.h"
 
+
 bool intersect(const Segment seg, const GRect frame)
 {
     const GPoint origin = frame.origin;
@@ -15,23 +16,25 @@ bool intersect(const Segment seg, const GRect frame)
     {
         return false;
     }
-    const float coef = (float)(tail.y - head.y) / (tail.x - head.x);
-    float y = coef * (x_min - head.x) + head.y;
+    int coef = ((tail.y - head.y) << 8) / (tail.x - head.x);
+    int y = ((coef * (x_min - head.x)) >> 8) + head.y;
     if (y > y_min && y < y_max)
     {
         return true;
     }
-    y = coef * (x_max - head.x) + head.y;
+    y = ((coef * (x_max - head.x)) >> 8) + head.y;
     if (y > y_min && y < y_max)
     {
         return true;
     }
-    float x = (y_min - head.y) / coef + head.x;
+
+    coef = ((tail.x - head.x) << 8) / (tail.y - head.y);
+    int x = ((coef * (y_min - head.y)) >> 8) + head.x;
     if (x > x_min && x < x_max)
     {
         return true;
     }
-    x = (y_max - head.y) / coef + head.x;
+    x = ((coef * (y_max - head.y)) >> 8) + head.x;
     if (x > x_min && x < x_max)
     {
         return true;
@@ -39,14 +42,15 @@ bool intersect(const Segment seg, const GRect frame)
     return false;
 }
 
-float angle(const int value, const int max)
+int angle(const int value, const int max)
 {
     if (value == 0 || value == max)
         return 0;
     return TRIG_MAX_ANGLE * value / max;
 }
 
-float angle_hour(const tm *const time, const bool with_delta)
+
+int angle_hour(const tm *const time, const bool with_delta)
 {
     const int hour = time->tm_hour % 12;
     if (with_delta)
@@ -56,7 +60,7 @@ float angle_hour(const tm *const time, const bool with_delta)
     return angle(hour, 12);
 }
 
-float angle_minute(const tm *const time)
+int angle_minute(const tm *const time)
 {
     return angle(time->tm_min, 60);
 }

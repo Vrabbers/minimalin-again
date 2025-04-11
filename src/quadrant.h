@@ -1,6 +1,7 @@
 #pragma once
 
-#include "pebble.h"
+#include <pebble.h>
+#include "text_block.h"
 
 #define FOUR 4
 
@@ -11,6 +12,7 @@ typedef enum
     West,
     East
 } Position;
+
 typedef enum
 {
     Tail,
@@ -19,6 +21,7 @@ typedef enum
     High,
     Head
 } Priority;
+
 typedef enum
 {
     First,
@@ -26,6 +29,7 @@ typedef enum
     Third,
     Fourth
 } Index;
+
 typedef struct
 {
     TextBlock *block;
@@ -35,7 +39,7 @@ typedef struct
 
 typedef struct
 {
-    Quadrant *quadrants[FOUR];
+    Quadrant *quadrants[4];
     GPoint center;
     Position free_positions[4];
     bool ready;

@@ -52,6 +52,13 @@
         "type": "toggle",
         "messageKey": "AppKeyMilitaryTime",
         "label": "24h Format"
+      },
+      {
+        "type": "toggle",
+        "messageKey": "AppKeyAnimationEnabled",
+        "label": "Animations",
+        "description": "Controls the animation on watchface start",
+        "defaultValue": true
       }
     ]
   },
@@ -65,24 +72,28 @@
       {
         "type": "toggle",
         "messageKey": "AppKeyDateDisplayed",
-        "label": "Date"
+        "label": "Date",
+        "defaultValue": true
       },
       {
         "type": "toggle",
         "messageKey": "AppKeyQuietTimeVisible",
-        "label": "Quiet Time Icon"
+        "label": "Quiet Time Icon",
+        "defaultValue": true
       },
       {
         "type": "toggle",
         "messageKey": "AppKeyWeatherEnabled",
         "id": "weatherEnabled",
-        "label": "Weather Enabled"
+        "label": "Weather Enabled",
+        "defaultValue": true
       },
       {
         "type": "input",
         "messageKey": "local.WeatherLocation",
         "label": "Fixed Location (leave empty to use phone location)",
-        "group": "weather"
+        "group": "weather",
+        "defaultValue": ""
       },
       {
         "type": "select",
