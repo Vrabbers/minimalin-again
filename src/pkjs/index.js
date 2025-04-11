@@ -168,9 +168,11 @@ Pebble.addEventListener('webviewclosed', function (e) {
     var dict = clay.getSettings(e.response, false);
 
     for (var key in dict) {
+        console.log(key);
         // HACK: Cheat the system so that persistent keys are still saved on by Clay. 
         // Set local storage for easy access but are not sent over to device
-        if (key.startsWith("local.")) {
+        if (key.substring(0, "local.".length) === "local.") {
+            console.log("getting rid of " + key)
             localStorage.setItem(key, dict[key].value)
             dict[key] = undefined;
             continue;
@@ -182,7 +184,12 @@ Pebble.addEventListener('webviewclosed', function (e) {
 
     dict["AppKeyConfig"] = 1
 
+    console.log(JSON.stringify(dict));
+
+
     var dictConverted = Clay.prepareSettingsForAppMessage(dict)
+
+    console.log(JSON.stringify(dictConverted));
 
     // Send settings values to watch side
     Pebble.sendAppMessage(dictConverted, function (e) {

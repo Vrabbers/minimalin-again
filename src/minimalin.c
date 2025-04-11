@@ -401,11 +401,8 @@ static void update_minute_hand_layer(Layer *layer, GContext *ctx)
     if (!config_get_bool(s_config, ConfigKeyRainbowMode))
     {
         const int start_angle = angle(270, 360);
-        int hand_angle = angle_minute(s_current_time);
-        if (config_get_bool(s_config, ConfigKeyAnimationEnabled))
-        {
-            hand_angle -= start_angle * (ANIMATION_NORMALIZED_MAX - s_animation_progress) / (ANIMATION_NORMALIZED_MAX + 1);
-        }
+        const int minute_angle = angle_minute(s_current_time);
+        const int hand_angle = minute_angle - start_angle * (ANIMATION_NORMALIZED_MAX - s_animation_progress) / (ANIMATION_NORMALIZED_MAX + 1);
         const GPoint hand_end = gpoint_on_circle(s_center, hand_angle, MINUTE_HAND_RADIUS);
         graphics_context_set_stroke_width(ctx, MINUTE_HAND_WIDTH);
         graphics_context_set_stroke_color(ctx, config_get_color(s_config, ConfigKeyMinuteHandColor));
@@ -415,12 +412,10 @@ static void update_minute_hand_layer(Layer *layer, GContext *ctx)
 
 static void update_hour_hand_layer(Layer *layer, GContext *ctx)
 {
+    const int hour_angle = angle_hour(s_current_time, true);
     const int start_angle = angle(90, 360);
-    int hand_angle = angle_hour(s_current_time, true);
-    if (!config_get_bool(s_config, ConfigKeyAnimationEnabled) || config_get_bool(s_config, ConfigKeyRainbowMode))
-    {
-        hand_angle -= start_angle * (ANIMATION_NORMALIZED_MAX - s_animation_progress) / (ANIMATION_NORMALIZED_MAX + 1);
-    }
+    const bool rainbow_mode = config_get_bool(s_config, ConfigKeyRainbowMode);
+    const int hand_angle = rainbow_mode ? hour_angle : hour_angle - start_angle * (ANIMATION_NORMALIZED_MAX - s_animation_progress) / (ANIMATION_NORMALIZED_MAX + 1);
     const GPoint hand_end = gpoint_on_circle(s_center, hand_angle, HOUR_HAND_RADIUS);
     graphics_context_set_stroke_width(ctx, HOUR_HAND_WIDTH);
     graphics_context_set_stroke_color(ctx, config_get_color(s_config, ConfigKeyHourHandColor));
@@ -753,6 +748,8 @@ static void main_window_load(Window *window)
 
     if (config_get_bool(s_config, ConfigKeyAnimationEnabled))
     {
+        s_animation_progress = 0;
+
         Animation *animation = animation_create();
         animation_set_curve(animation, AnimationCurveEaseInOut);
 
@@ -762,6 +759,10 @@ static void main_window_load(Window *window)
         animation_set_implementation(animation, &implementation);
 
         animation_schedule(animation);
+    }
+    else 
+    {
+        s_animation_progress = ANIMATION_NORMALIZED_MAX;
     }
 }
 
