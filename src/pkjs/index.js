@@ -58,7 +58,7 @@ var Weather = function (pebble) {
         console.log("Fetching location " + url);
         var req = new XMLHttpRequest();
         req.open(GET, url, true);
-        req.onloadend = function () {
+        req.onload = function () {
             if (req.status === 200) {
                 var resp = JSON.parse(req.responseText);
                 if (resp.features.length != 1) {
@@ -74,18 +74,16 @@ var Weather = function (pebble) {
 
                 callbackSuccess(lat, lon);
             }
+            else {
+                callbackError("geocode error: status " + req.status);
+            }
         }
+        req.onerror = function() { callbackError("geocode error: request failed"); }
         req.send(null);
     }
 
     var fetchWeatherForLocation = function (location) {
-        var loc = fetchLocation(location, fetchWeatherForCoordinates, function (e) {
-            console.log(e);
-            console.log("pebble.sendAppMessage({'AppKeyWeatherFailed': 1})")
-            pebble.sendAppMessage({
-                'AppKeyWeatherFailed': 1
-            });
-        });
+        var loc = fetchLocation(location, fetchWeatherForCoordinates, weatherError);
     }
 
     var fetchWeatherForCoordinates = function (latitude, longitude) {
@@ -94,16 +92,12 @@ var Weather = function (pebble) {
     }
 
     var fetchWeather = function (query) {
-        // if (!API_ID || API_ID.length == 0) {
-        //   console.error("no weather API key");
-        //   Pebble.sendAppMessage({ 'AppKeyWeatherFailed': 1 });
-        // }
         localStorage.removeItem("lastCoordFetch");
         var req = new XMLHttpRequest();
         query += '&current=temperature_2m,weather_code,is_day'
         console.log('query: ' + query);
         req.open(GET, BASE_URL + '?' + query, true);
-        req.onloadend = function () {
+        req.onload = function () {
             if (req.status === 200) {
                 var response = JSON.parse(req.responseText);
                 var temperature = Math.round(response.current.temperature_2m);
@@ -114,22 +108,22 @@ var Weather = function (pebble) {
                 };
                 console.log('fetchWeather sendAppMessage:', JSON.stringify(data));
                 pebble.sendAppMessage(data);
+
             } else {
-                console.log('error: fetchWeather AppKeyWeatherFailed:', JSON.stringify(req));
-                pebble.sendAppMessage({ 'AppKeyWeatherFailed': 1 });
+                weatherError("weather query failed, request status: " + req.status);
             }
         };
+        req.onerror = function () { weatherError("weather query failed (onerror)"); };
         req.send(null);
     }
 
     var locationSuccess = function (pos) {
-        //console.log('AppKeyWeatherFailed: locationSuccess');
         var coordinates = pos.coords;
         fetchWeatherForCoordinates(coordinates.latitude, coordinates.longitude);
     }
 
-    var locationError = function (err) {
-        //console.log('error: AppKeyWeatherFailed: locationError');
+    var weatherError = function (err) {
+        console.log('weather fetch error: ' + err);
         pebble.sendAppMessage({
             'AppKeyWeatherFailed': 1
         });
@@ -139,12 +133,12 @@ var Weather = function (pebble) {
         var dict = e.payload;
         //console.log('appmessage:', JSON.stringify(dict));
         if (dict['AppKeyWeatherRequest']) {
-            var location = localStorage.getItem("local.WeatherLocation")
+            var location = localStorage.getItem("local.WeatherLocation");
             console.log("got location " + location)
             if (location) {
                 fetchWeatherForLocation(location);
             } else {
-                window.navigator.geolocation.getCurrentPosition(locationSuccess, locationError, LOCATION_OPTS);
+                window.navigator.geolocation.getCurrentPosition(locationSuccess, weatherError, LOCATION_OPTS);
             }
         }
     });
@@ -174,10 +168,10 @@ Pebble.addEventListener('webviewclosed', function (e) {
         if (key.substring(0, "local.".length) === "local.") {
             console.log("getting rid of " + key)
             localStorage.setItem(key, dict[key].value)
-            dict[key] = undefined;
+            delete dict[key];
             continue;
         }
-        else if (key == "AppKeyBluetoothIcon") {
+        else if (key == "AppKeyBluetoothIcon" || key == "AppKeyTemperatureUnit") {
             dict[key].value = parseInt(dict[key].value)
         }
     }
