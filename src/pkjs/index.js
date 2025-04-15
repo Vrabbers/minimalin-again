@@ -53,7 +53,19 @@ var Weather = function (pebble) {
         return i.charCodeAt(0);
     }
 
+    var GEOCODE_FETCH_CACHE = "geocodeFetchCache"
+
     var fetchLocation = function (location, callbackSuccess, callbackError) {
+        var lastGeocode = localStorage.getItem(GEOCODE_FETCH_CACHE);
+
+        if (lastGeocode !== null) {
+            var geo = JSON.parse(lastGeocode);
+            if (geo.location === location) {
+                callbackSuccess(geo.latitude, geo.longitude);
+                return; 
+            }
+        }
+
         var url = BASE_GEOCODE_URL + '?limit=1&q=' + location;
         console.log("Fetching location " + url);
         var req = new XMLHttpRequest();
@@ -68,11 +80,15 @@ var Weather = function (pebble) {
                 }
                 var coords = resp.features[0].geometry.coordinates;
                 var lat = coords[1];
-                var lon = coords[0];
-                console.log("geocode success: long:" + lon + ", lat:" + lat);
-                localStorage.setItem("lastCoordFetch", + "lat:" + lat + ", long:" + lon)
-
-                callbackSuccess(lat, lon);
+                var long = coords[0];
+                console.log("geocode success: long:" + long + ", lat:" + lat);
+                var cache = {
+                    location: location,
+                    latitude: lat,
+                    longitude: long
+                }
+                localStorage.setItem(GEOCODE_FETCH_CACHE, JSON.stringify(cache))
+                callbackSuccess(lat, long);
             }
             else {
                 callbackError("geocode error: status " + req.status);
@@ -83,7 +99,7 @@ var Weather = function (pebble) {
     }
 
     var fetchWeatherForLocation = function (location) {
-        var loc = fetchLocation(location, fetchWeatherForCoordinates, weatherError);
+        fetchLocation(location, fetchWeatherForCoordinates, weatherError);
     }
 
     var fetchWeatherForCoordinates = function (latitude, longitude) {
@@ -108,7 +124,6 @@ var Weather = function (pebble) {
                 };
                 console.log('fetchWeather sendAppMessage:', JSON.stringify(data));
                 pebble.sendAppMessage(data);
-
             } else {
                 weatherError("weather query failed, request status: " + req.status);
             }
@@ -167,11 +182,11 @@ Pebble.addEventListener('webviewclosed', function (e) {
         // Set local storage for easy access but are not sent over to device
         if (key.substring(0, "local.".length) === "local.") {
             console.log("getting rid of " + key)
-            localStorage.setItem(key, dict[key].value)
+            localStorage.setItem(key, JSON.stringify(dict[key].value))
             delete dict[key];
             continue;
         }
-        else if (key == "AppKeyBluetoothIcon" || key == "AppKeyTemperatureUnit") {
+        else if (key === "AppKeyBluetoothIcon" || key === "AppKeyTemperatureUnit") {
             dict[key].value = parseInt(dict[key].value)
         }
     }
