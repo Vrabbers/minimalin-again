@@ -18,7 +18,7 @@ top = '.'
 out = 'build'
 
 def fetch_conf(ctx, name):
-    if os.environ.has_key(name):
+    if name in os.environ:
         ctx.define(name, os.environ[name], quote=False)
 
 def options(ctx):

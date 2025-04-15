@@ -22,7 +22,8 @@
         "type": "toggle",
         "messageKey": "AppKeyRainbowMode",
         "label": "Use Rainbow Minute Hand",
-        "description": "Overrides minute hand color"
+        "description": "Overrides minute hand color",
+        "capabilities": ["COLOR"]
       },
       {
         "type": "color",
@@ -40,7 +41,15 @@
         "type": "color",
         "messageKey": "AppKeyInfoColor",
         "label": "Complications Color",
-        "defaultValue": "#555555"
+        "defaultValue": "#555555",
+        "capabilities": ["COLOR"]
+      },
+      {
+        "type": "color",
+        "messageKey": "AppKeyInfoColor",
+        "label": "Complications Color",
+        "defaultValue": "#FFFFFF",
+        "capabilities": ["BW"]
       },
       {
         "type": "toggle",
@@ -158,7 +167,8 @@
         "messageKey": "AppKeyHealthEnabled",
         "defaultValue": false,
         "label": "Show Steps",
-        "description": "Requires Pebble Health"
+        "description": "Requires Pebble Health",
+        "capabilities": ["HEALTH"]
       }
     ]
   },
