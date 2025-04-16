@@ -40,7 +40,6 @@ typedef struct
 typedef struct
 {
     Quadrant *quadrants[4];
-    GPoint center;
     Position free_positions[4];
     bool ready;
     int size;

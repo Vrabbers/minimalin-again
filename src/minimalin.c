@@ -6,7 +6,7 @@
 #include "messenger.h"
 #include "minimalin.h"
 #include "geometry.h"
-
+#include "globals.h"
 
 // #define d(string, ...) APP_LOG (APP_LOG_LEVEL_DEBUG, string, ##__VA_ARGS__)
 // #define e(string, ...) APP_LOG (APP_LOG_LEVEL_ERROR, string, ##__VA_ARGS__)
@@ -69,7 +69,6 @@ static Context s_context;
 static Window *s_main_window;
 static Layer *s_root_layer;
 static GRect s_root_layer_bounds;
-static GPoint s_center;
 
 static TextBlock *s_weather_info;
 static TextBlock *s_date_info;
@@ -403,10 +402,10 @@ static void update_minute_hand_layer(Layer *layer, GContext *ctx)
         const int start_angle = angle(270, 360);
         const int minute_angle = angle_minute(s_current_time);
         const int hand_angle = minute_angle - start_angle * (ANIMATION_NORMALIZED_MAX - s_animation_progress) / (ANIMATION_NORMALIZED_MAX + 1);
-        const GPoint hand_end = gpoint_on_circle(s_center, hand_angle, MINUTE_HAND_RADIUS);
+        const GPoint hand_end = gpoint_on_circle(g_center, hand_angle, MINUTE_HAND_RADIUS);
         graphics_context_set_stroke_width(ctx, MINUTE_HAND_WIDTH);
         graphics_context_set_stroke_color(ctx, config_get_color(s_config, ConfigKeyMinuteHandColor));
-        graphics_draw_line(ctx, s_center, hand_end);
+        graphics_draw_line(ctx, g_center, hand_end);
     }
 }
 
@@ -416,17 +415,17 @@ static void update_hour_hand_layer(Layer *layer, GContext *ctx)
     const int start_angle = angle(90, 360);
     const bool rainbow_mode = config_get_bool(s_config, ConfigKeyRainbowMode);
     const int hand_angle = rainbow_mode ? hour_angle : hour_angle - start_angle * (ANIMATION_NORMALIZED_MAX - s_animation_progress) / (ANIMATION_NORMALIZED_MAX + 1);
-    const GPoint hand_end = gpoint_on_circle(s_center, hand_angle, HOUR_HAND_RADIUS);
+    const GPoint hand_end = gpoint_on_circle(g_center, hand_angle, HOUR_HAND_RADIUS);
     graphics_context_set_stroke_width(ctx, HOUR_HAND_WIDTH);
     graphics_context_set_stroke_color(ctx, config_get_color(s_config, ConfigKeyHourHandColor));
-    graphics_draw_line(ctx, s_center, hand_end);
+    graphics_draw_line(ctx, g_center, hand_end);
 }
 
 static void update_center_circle_layer(Layer *layer, GContext *ctx)
 {
     const GColor color = config_get_bool(s_config, ConfigKeyRainbowMode) ? GColorVividViolet : config_get_color(s_config, ConfigKeyHourHandColor);
     graphics_context_set_fill_color(ctx, color);
-    graphics_fill_circle(ctx, s_center, CENTER_CIRCLE_RADIUS);
+    graphics_fill_circle(ctx, g_center, CENTER_CIRCLE_RADIUS);
 }
 
 // Ticks
@@ -663,26 +662,36 @@ static void implementation_update(Animation *animation,
 {
     s_animation_progress = progress;
     layer_mark_dirty(s_hour_hand_layer);
-    layer_mark_dirty(s_minute_hand_layer);
+    mark_dirty_minute_hand_layer();
 }
 
 static const AnimationImplementation implementation = {
     .update = implementation_update,
 };
 
+static AnimationProgress s_unob_area_anim_progress = ANIMATION_NORMALIZED_MIN;
+static GPoint s_old_center;
+static GPoint s_new_center;
+
 static void unobstructed_area_will_change_handler(GRect final_unobstructed_screen_area, void *context)
 {
+    s_old_center = g_center;
+    s_new_center = grect_center_point(&final_unobstructed_screen_area);
     quadrants_unobstructed_area_will_change(final_unobstructed_screen_area);
 }
 
 static void unobstructed_area_change_handler(AnimationProgress progress, void *context)
 {
+    g_center = gpoint_lerp_anim(s_old_center, s_new_center, progress);
     quadrants_unobstructed_area_changing(progress);
     quadrants_update(s_quadrants, s_current_time);
+    layer_mark_dirty(s_hour_hand_layer);
+    mark_dirty_minute_hand_layer();
 }
 
 static void unobstructed_area_did_change_handler(void *context)
 {
+    g_center = s_new_center;
     quadrants_unobstructed_area_done();
     quadrants_update(s_quadrants, s_current_time);
 }
@@ -690,12 +699,13 @@ static void unobstructed_area_did_change_handler(void *context)
 static void main_window_load(Window *window)
 {
     s_root_layer = window_get_root_layer(window);
-    s_root_layer_bounds = layer_get_unobstructed_bounds(s_root_layer);
-    s_center = grect_center_point(&s_root_layer_bounds);
+    s_root_layer_bounds = layer_get_bounds(s_root_layer);
+    GRect unob_bounds = layer_get_unobstructed_bounds(s_root_layer);
+    g_center = grect_center_point(&unob_bounds);
     update_current_time();
     window_set_background_color(window, config_get_color(s_config, ConfigKeyBackgroundColor));
 
-    s_quadrants = quadrants_create(s_center, HOUR_HAND_RADIUS, MINUTE_HAND_RADIUS, s_root_layer);
+    s_quadrants = quadrants_create(g_center, HOUR_HAND_RADIUS, MINUTE_HAND_RADIUS, s_root_layer);
     s_date_info = quadrants_add_text_block(s_quadrants, s_root_layer, s_font, Low, s_current_time);
     text_block_set_enabled(s_date_info, config_get_bool(s_config, ConfigKeyDateDisplayed));
     text_block_set_context(s_date_info, &s_context);
@@ -747,8 +757,8 @@ static void main_window_load(Window *window)
     const GPoint png_center = GPoint(RAINBOW_HAND_OFFSET_X, RAINBOW_HAND_OFFSET_Y);
     rot_bitmap_set_src_ic(s_rainbow_hand_layer, png_center);
     GRect frame = layer_get_frame((Layer *)s_rainbow_hand_layer);
-    frame.origin.x = s_center.x - frame.size.w / 2;
-    frame.origin.y = s_center.y - frame.size.h / 2;
+    frame.origin.x = g_center.x - frame.size.w / 2;
+    frame.origin.y = g_center.y - frame.size.h / 2;
     layer_set_frame((Layer *)s_rainbow_hand_layer, frame);
     layer_set_update_proc(s_hour_hand_layer, update_hour_hand_layer);
     layer_set_update_proc(s_minute_hand_layer, update_minute_hand_layer);

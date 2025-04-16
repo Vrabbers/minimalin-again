@@ -18,3 +18,4 @@ int angle_hour(const tm *const time, const bool with_delta);
 int angle_minute(const tm *const time);
 GPoint gpoint_on_circle(const GPoint center, const int angle, const int radius);
 GRect grect_from_center_and_size(const GPoint center, const GSize size);
+GPoint gpoint_lerp_anim(GPoint a, GPoint b, AnimationProgress progress);

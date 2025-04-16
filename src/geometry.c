@@ -1,3 +1,5 @@
+#include <pebble.h>
+
 #include "geometry.h"
 
 
@@ -77,4 +79,11 @@ GRect grect_from_center_and_size(const GPoint center, const GSize size)
     return (GRect){
         .origin = GPoint(center.x - size.w / 2, center.y - size.h / 2),
         .size = size};
+}
+
+GPoint gpoint_lerp_anim(GPoint a, GPoint b, AnimationProgress x)
+{
+    const int32_t dx = ((b.x - a.x) * x) / (ANIMATION_NORMALIZED_MAX + 1);
+    const int32_t dy = ((b.y - a.y) * x) / (ANIMATION_NORMALIZED_MAX + 1);
+    return GPoint(a.x + dx, a.y + dy);
 }
