@@ -666,19 +666,36 @@ static void implementation_update(Animation *animation,
     layer_mark_dirty(s_minute_hand_layer);
 }
 
-const AnimationImplementation implementation = {
+static const AnimationImplementation implementation = {
     .update = implementation_update,
 };
+
+static void unobstructed_area_will_change_handler(GRect final_unobstructed_screen_area, void *context)
+{
+    quadrants_unobstructed_area_will_change(final_unobstructed_screen_area);
+}
+
+static void unobstructed_area_change_handler(AnimationProgress progress, void *context)
+{
+    quadrants_unobstructed_area_changing(progress);
+    quadrants_update(s_quadrants, s_current_time);
+}
+
+static void unobstructed_area_did_change_handler(void *context)
+{
+    quadrants_unobstructed_area_done();
+    quadrants_update(s_quadrants, s_current_time);
+}
 
 static void main_window_load(Window *window)
 {
     s_root_layer = window_get_root_layer(window);
-    s_root_layer_bounds = layer_get_bounds(s_root_layer);
+    s_root_layer_bounds = layer_get_unobstructed_bounds(s_root_layer);
     s_center = grect_center_point(&s_root_layer_bounds);
     update_current_time();
     window_set_background_color(window, config_get_color(s_config, ConfigKeyBackgroundColor));
 
-    s_quadrants = quadrants_create(s_center, HOUR_HAND_RADIUS, MINUTE_HAND_RADIUS);
+    s_quadrants = quadrants_create(s_center, HOUR_HAND_RADIUS, MINUTE_HAND_RADIUS, s_root_layer);
     s_date_info = quadrants_add_text_block(s_quadrants, s_root_layer, s_font, Low, s_current_time);
     text_block_set_enabled(s_date_info, config_get_bool(s_config, ConfigKeyDateDisplayed));
     text_block_set_context(s_date_info, &s_context);
@@ -764,6 +781,14 @@ static void main_window_load(Window *window)
     {
         s_animation_progress = ANIMATION_NORMALIZED_MAX;
     }
+
+    UnobstructedAreaHandlers unobstructed_area_handlers = {
+        .will_change = unobstructed_area_will_change_handler,
+        .change = unobstructed_area_change_handler,
+        .did_change = unobstructed_area_did_change_handler
+    };
+
+    unobstructed_area_service_subscribe(unobstructed_area_handlers, NULL);
 }
 
 static void main_window_unload(Window *window)

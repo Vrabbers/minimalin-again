@@ -12,22 +12,11 @@
 #define PRIORITY(quadrants, index) quadrants->quadrants[index]->priority
 #define POS(quadrants, index) quadrants->quadrants[index]->position
 
-#ifdef PBL_PLATFORM_EMERY
-#define SOUTH_INFO_CENTER GPoint(100, 162)
-#define NORTH_INFO_CENTER GPoint(100, 62)
-#define EAST_INFO_CENTER GPoint(150, 112)
-#define WEST_INFO_CENTER GPoint(50, 112)
-#elif PBL_ROUND
-#define SOUTH_INFO_CENTER GPoint(90, 122)
-#define NORTH_INFO_CENTER GPoint(90, 52)
-#define EAST_INFO_CENTER GPoint(130, 86)
-#define WEST_INFO_CENTER GPoint(50, 86)
-#else
-#define SOUTH_INFO_CENTER GPoint(72, 118)
-#define NORTH_INFO_CENTER GPoint(72, 42)
-#define EAST_INFO_CENTER GPoint(108, 82)
-#define WEST_INFO_CENTER GPoint(36, 82)
-#endif
+static GPoint *info_centers = NULL;
+
+static GPoint *new_info_centers;
+
+static AnimationProgress animation_progess = ANIMATION_NORMALIZED_MIN;
 
 static GRect rect_translate(const GRect rect, const int x, const int y)
 {
@@ -35,43 +24,36 @@ static GRect rect_translate(const GRect rect, const int x, const int y)
     return (GRect){.origin = GPoint(origin.x + x, origin.y + y), .size = rect.size};
 }
 
+static GPoint center_for_position(const Position position)
+{
+    GPoint center = info_centers[position];
+    if (new_info_centers != NULL && animation_progess != ANIMATION_NORMALIZED_MIN)
+    {
+        const GPoint new_center = new_info_centers[position];
+        const int32_t dx = ((new_center.x - center.x) * ANIMATION_NORMALIZED_MAX) / (ANIMATION_NORMALIZED_MAX + 1);
+        const int32_t dy = ((new_center.y - center.y) * ANIMATION_NORMALIZED_MAX) / (ANIMATION_NORMALIZED_MAX + 1);
+        center.x += dx;
+        center.y += dy;
+    }
+    return center;
+}
+
 static bool segment_intersect_with_position(const Segment segment, const Position position)
 {
-    GPoint center;
-    if (position == North)
-    {
-        center = NORTH_INFO_CENTER;
-    }
-    else if (position == South)
-    {
-        center = SOUTH_INFO_CENTER;
-    }
-    else if (position == East)
-    {
-        center = EAST_INFO_CENTER;
-    }
-    else
-    {
-        center = WEST_INFO_CENTER;
-    }
+    GPoint center = center_for_position(position);
     const GRect rect = grect_from_center_and_size(center, BLOCK_SIZE);
     return intersect(segment, rect_translate(rect, 0, 4));
 }
 
 static void quadrants_move_quadrant(Quadrants *const quadrants, const Index index, const Position position)
 {
-    const GPoint centers[POSTIONS_COUNT] = {
-        [North] = NORTH_INFO_CENTER,
-        [South] = SOUTH_INFO_CENTER,
-        [West] = WEST_INFO_CENTER,
-        [East] = EAST_INFO_CENTER};
     if (index >= POSTIONS_COUNT)
     {
         return;
     }
     Quadrant *const quadrant = quadrants->quadrants[index];
     quadrant->position = position;
-    text_block_move(quadrant->block, centers[position]);
+    text_block_move(quadrant->block, center_for_position(position));
 }
 
 static void quadrants_swap(Quadrants *quadrants, const Index first, const Index second)
@@ -118,11 +100,11 @@ static bool time_intersect_with_position(Quadrants *const quadrants, const tm *c
     return segment_intersect_with_position(hour_hand, pos) || segment_intersect_with_position(minute_hand, pos);
 }
 
-static bool quadrants_try_takeover_quadrant_in_order(Quadrants *const quadrants, const Index index, const tm *const time, const Position intersect_positions[POSTIONS_COUNT], const bool check_intersect)
+static bool quadrants_try_takeover_quadrant_in_order(Quadrants *const quadrants, const Index index, const tm *const time, const Position order[POSTIONS_COUNT], const bool check_intersect)
 {
     for (int index_pos = 0; index_pos < POSTIONS_COUNT; index_pos++)
     {
-        const Position pos = intersect_positions[index_pos];
+        const Position pos = order[index_pos];
         if (check_intersect && time_intersect_with_position(quadrants, time, pos))
         {
             continue;
@@ -164,8 +146,21 @@ static void quadrants_try_takeover_quadrant(Quadrants *const quadrants, const In
     quadrants_try_takeover_quadrant_in_order(quadrants, index, time, order, false);
 }
 
-Quadrants *quadrants_create(const GPoint center, const int hour_hand_radius, const int minute_hand_radius)
+static GPoint *create_centers_for_rect(const GRect area)
 {
+    GPoint *centers = (GPoint *)malloc(sizeof(GPoint) * POSTIONS_COUNT);
+    const int quarter_width = area.size.w / 4;
+    const int quarter_height = area.size.h / 4;
+    centers[North] = GPoint(area.origin.x + 2 * quarter_width, area.origin.y + quarter_height);
+    centers[South] = GPoint(area.origin.x + 2 * quarter_width, area.origin.y + 3 * quarter_height);
+    centers[West] = GPoint(area.origin.x + quarter_width, area.origin.y + 2 * quarter_height);
+    centers[East] = GPoint(area.origin.x + 3 * quarter_width, area.origin.y + 2 * quarter_height);
+    return centers;
+}
+
+Quadrants *quadrants_create(const GPoint center, const int hour_hand_radius, const int minute_hand_radius, const Layer *const root_layer)
+{
+    info_centers = create_centers_for_rect(layer_get_unobstructed_bounds(root_layer));
     Quadrants *const quadrants = (Quadrants *)malloc(sizeof(Quadrants));
     quadrants->ready = false;
     quadrants->center = center;
@@ -209,12 +204,8 @@ TextBlock *quadrants_add_text_block(Quadrants *const quadrants, Layer *const roo
             break;
         }
     }
-    const GPoint centers[POSTIONS_COUNT] = {
-        [North] = NORTH_INFO_CENTER,
-        [South] = SOUTH_INFO_CENTER,
-        [West] = WEST_INFO_CENTER,
-        [East] = EAST_INFO_CENTER};
-    TextBlock *const block = text_block_create(root_layer, centers[position], font);
+
+    TextBlock *const block = text_block_create(root_layer, center_for_position(position), font);
     text_block_set_ready(block, false);
     const int size = quadrants->size;
     if (size >= QUADRANT_COUNT)
@@ -252,4 +243,23 @@ void quadrants_update(Quadrants *const quadrants, const tm *const time)
             text_block_set_ready(BLOCK(quadrants, index), true);
         }
     }
+}
+
+void quadrants_unobstructed_area_will_change(GRect new_unobstructed_area)
+{
+    new_info_centers = create_centers_for_rect(new_unobstructed_area);
+}
+
+void quadrants_unobstructed_area_changing(AnimationProgress anim_progress)
+{
+    animation_progess = anim_progress;
+}
+
+void quadrants_unobstructed_area_done(void)
+{
+    GPoint *const old_info_centers = info_centers;
+    info_centers = new_info_centers;
+    free(old_info_centers);
+    new_info_centers = NULL;
+    animation_progess = ANIMATION_NORMALIZED_MIN;
 }
