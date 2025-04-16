@@ -82,7 +82,7 @@ static void tick_point_change_positions(GPoint tick_points[][2], GPoint time_poi
 {
     const GPoint center = grect_center_point(area);
     const GPoint origin = area->origin;
-    const GPoint end = GPoint(area->origin.x + area->size.w, area->origin.y + area->size.h);
+    const GPoint end = GPoint(area->origin.x + area->size.w - 1, area->origin.y + area->size.h - 1);
     // TAN30 is represented * 0x100
     // multiply it by the dimension to get the height difference on the rectangle
     // "radius" would be area->size / 2
@@ -98,7 +98,7 @@ static void tick_point_change_positions(GPoint tick_points[][2], GPoint time_poi
     tick_points[5][0] = GPoint(center.x + one_dx_edge, end.y);
     tick_points[6][0] = GPoint(center.x, end.y);
     tick_points[7][0] = GPoint(center.x - one_dx_edge, end.y);
-    tick_points[8][0] = GPoint(origin.x, origin.y + two_dy_edge);
+    tick_points[8][0] = GPoint(origin.x, center.y + two_dy_edge);
     tick_points[9][0] = GPoint(origin.x, center.y);
     tick_points[10][0] = GPoint(origin.x, center.y - two_dy_edge);
     tick_points[11][0] = GPoint(center.x - one_dx_edge, origin.y);
@@ -114,7 +114,7 @@ static void tick_point_change_positions(GPoint tick_points[][2], GPoint time_poi
     tick_points[5][1] = GPoint(center.x + one_dx_tick, end.y - TICK_LENGTH);
     tick_points[6][1] = GPoint(center.x, end.y - TICK_LENGTH);
     tick_points[7][1] = GPoint(center.x - one_dx_tick, end.y - TICK_LENGTH);
-    tick_points[8][1] = GPoint(origin.x + TICK_LENGTH, origin.y + two_dy_tick);
+    tick_points[8][1] = GPoint(origin.x + TICK_LENGTH, center.y + two_dy_tick);
     tick_points[9][1] = GPoint(origin.x + TICK_LENGTH, center.y);
     tick_points[10][1] = GPoint(origin.x + TICK_LENGTH, center.y - two_dy_tick);
     tick_points[11][1] = GPoint(center.x - one_dx_tick, origin.y + TICK_LENGTH);
@@ -130,7 +130,7 @@ static void tick_point_change_positions(GPoint tick_points[][2], GPoint time_poi
     time_points[5] = GPoint(center.x + one_dx_time, end.y - TIME_POINT_DY2);
     time_points[6] = GPoint(center.x, end.y - TIME_POINT_DY2);
     time_points[7] = GPoint(center.x - one_dx_time, end.y - TIME_POINT_DY2);
-    time_points[8] = GPoint(origin.x + TIME_POINT_DX, origin.y + two_dy_time);
+    time_points[8] = GPoint(origin.x + TIME_POINT_DX, center.y + two_dy_time);
     time_points[9] = GPoint(origin.x + TIME_POINT_DX, center.y - TIME_Y_OFFSET);
     time_points[10] = GPoint(origin.x + TIME_POINT_DX, center.y - two_dy_time);
     time_points[11] = GPoint(center.x - one_dx_time, origin.y + TIME_POINT_DY);
