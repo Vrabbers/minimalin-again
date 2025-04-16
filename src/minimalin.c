@@ -7,6 +7,7 @@
 #include "minimalin.h"
 #include "geometry.h"
 #include "globals.h"
+#include "tick_points.h"
 
 // #define d(string, ...) APP_LOG (APP_LOG_LEVEL_DEBUG, string, ##__VA_ARGS__)
 // #define e(string, ...) APP_LOG (APP_LOG_LEVEL_ERROR, string, ##__VA_ARGS__)
@@ -98,6 +99,8 @@ static int s_js_ready;
 static GFont s_font;
 
 static tm *s_current_time;
+
+static AnimationProgress s_unob_area_anim_progress = ANIMATION_NORMALIZED_MIN;
 
 static void schedule_weather_request(int timeout);
 static void mark_dirty_minute_hand_layer();
@@ -311,7 +314,7 @@ static void hour_time_update_proc(TextBlock *block)
     char buffer[] = "00:00";
     const int hour = context->time->tm_hour;
     const int hour_mod_12 = hour % 12;
-    const GPoint block_center = time_points[hour_mod_12];
+    const GPoint block_center = get_time_position(hour_mod_12, s_unob_area_anim_progress);
     const bool military_time = config_get_bool(config, ConfigKeyMilitaryTime);
     const int printed_hour = military_time ? hour : hour_mod_12 == 0 ? 12
                                                                      : hour_mod_12;
@@ -344,7 +347,7 @@ static void minute_time_update_proc(TextBlock *block)
     const GColor color = config_get_color(config, ConfigKeyTimeColor);
     char buffer[] = "00";
     const int min = context->time->tm_min;
-    const GPoint block_center = time_points[min / 5];
+    const GPoint block_center = get_time_position(min / 5, s_unob_area_anim_progress);
     if (times_conflicting_north_or_south(context->time))
     {
         text_block_set_text(s_minute_text, "", color);
@@ -432,7 +435,9 @@ static void update_center_circle_layer(Layer *layer, GContext *ctx)
 
 static void draw_tick(GContext *ctx, const int index)
 {
-    graphics_draw_line(ctx, ticks_points[index][0], ticks_points[index][1]);
+    GPoint points[2]; 
+    get_tick_positions(index, s_unob_area_anim_progress, points);
+    graphics_draw_line(ctx, points[0], points[1]);
 }
 
 static void tick_layer_update_callback(Layer *layer, GContext *graphic_ctx)
@@ -669,7 +674,6 @@ static const AnimationImplementation implementation = {
     .update = implementation_update,
 };
 
-static AnimationProgress s_unob_area_anim_progress = ANIMATION_NORMALIZED_MIN;
 static GPoint s_old_center;
 static GPoint s_new_center;
 
@@ -677,6 +681,7 @@ static void unobstructed_area_will_change_handler(GRect final_unobstructed_scree
 {
     s_old_center = g_center;
     s_new_center = grect_center_point(&final_unobstructed_screen_area);
+    tick_points_will_change(&final_unobstructed_screen_area);
     quadrants_unobstructed_area_will_change(final_unobstructed_screen_area);
 }
 
@@ -687,6 +692,7 @@ static void unobstructed_area_change_handler(AnimationProgress progress, void *c
     quadrants_update(s_quadrants, s_current_time);
     layer_mark_dirty(s_hour_hand_layer);
     mark_dirty_minute_hand_layer();
+    s_unob_area_anim_progress = progress;
 }
 
 static void unobstructed_area_did_change_handler(void *context)
@@ -694,6 +700,8 @@ static void unobstructed_area_did_change_handler(void *context)
     g_center = s_new_center;
     quadrants_unobstructed_area_done();
     quadrants_update(s_quadrants, s_current_time);
+    tick_points_done_changing();
+    s_unob_area_anim_progress = ANIMATION_NORMALIZED_MIN;
 }
 
 static void main_window_load(Window *window)
@@ -702,9 +710,10 @@ static void main_window_load(Window *window)
     s_root_layer_bounds = layer_get_bounds(s_root_layer);
     GRect unob_bounds = layer_get_unobstructed_bounds(s_root_layer);
     g_center = grect_center_point(&unob_bounds);
+    tick_points_init(&unob_bounds);
     update_current_time();
     window_set_background_color(window, config_get_color(s_config, ConfigKeyBackgroundColor));
-
+    
     s_quadrants = quadrants_create(g_center, HOUR_HAND_RADIUS, MINUTE_HAND_RADIUS, s_root_layer);
     s_date_info = quadrants_add_text_block(s_quadrants, s_root_layer, s_font, Low, s_current_time);
     text_block_set_enabled(s_date_info, config_get_bool(s_config, ConfigKeyDateDisplayed));
@@ -733,11 +742,11 @@ static void main_window_load(Window *window)
     battery_handler(battery_state_service_peek());
     update_watch_info_layer_visibility();
 
-    s_hour_text = text_block_create(s_root_layer, time_points[6], s_font);
+    s_hour_text = text_block_create(s_root_layer, get_time_position(6, ANIMATION_NORMALIZED_MIN), s_font);
     text_block_set_context(s_hour_text, &s_context);
     text_block_set_update_proc(s_hour_text, hour_time_update_proc);
 
-    s_minute_text = text_block_create(s_root_layer, time_points[0], s_font);
+    s_minute_text = text_block_create(s_root_layer, get_time_position(0, ANIMATION_NORMALIZED_MIN), s_font);
     text_block_set_context(s_minute_text, &s_context);
     text_block_set_update_proc(s_minute_text, minute_time_update_proc);
 

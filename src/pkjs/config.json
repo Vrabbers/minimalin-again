@@ -94,7 +94,7 @@
         "type": "toggle",
         "messageKey": "AppKeyWeatherEnabled",
         "id": "weatherEnabled",
-        "label": "Weather Enabled",
+        "label": "Weather",
         "defaultValue": true
       },
       {
