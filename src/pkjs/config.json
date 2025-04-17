@@ -7,6 +7,58 @@
         "defaultValue": "Theme"
       },
       {
+        "type": "section",
+        "capabilities": [
+          "BW"
+        ],
+        "items": [
+          {
+            "type": "button",
+            "id": "darkBwTheme",
+            "defaultValue": "Dark",
+            "group": "themeButtons"
+          },
+          {
+            "type": "button",
+            "id": "lightBwTheme",
+            "defaultValue": "Light",
+            "group": "themeButtons"
+          }
+        ]
+      },
+      {
+        "type": "section",
+        "capabilities": [
+          "COLOR"
+        ],
+        "items": [
+          {
+            "type": "button",
+            "id": "defaultColorTheme",
+            "defaultValue": "Default",
+            "group": "themeButtons"
+          },
+          {
+            "type": "button",
+            "id": "rainbowColorTheme",
+            "defaultValue": "Rainbow",
+            "group": "themeButtons"
+          },
+          {
+            "type": "button",
+            "id": "nightColorTheme",
+            "defaultValue": "Night",
+            "group": "themeButtons"
+          },
+          {
+            "type": "button",
+            "id": "lobsterColorTheme",
+            "defaultValue": "Lobster",
+            "group": "themeButtons"
+          }
+        ]
+      },
+      {
         "type": "color",
         "messageKey": "AppKeyHourHandColor",
         "label": "Hour Hand Color",
@@ -23,7 +75,9 @@
         "messageKey": "AppKeyRainbowMode",
         "label": "Use Rainbow Minute Hand",
         "description": "Overrides minute hand color",
-        "capabilities": ["COLOR"]
+        "capabilities": [
+          "COLOR"
+        ]
       },
       {
         "type": "color",
@@ -42,14 +96,18 @@
         "messageKey": "AppKeyInfoColor",
         "label": "Complications Color",
         "defaultValue": "#555555",
-        "capabilities": ["COLOR"]
+        "capabilities": [
+          "COLOR"
+        ]
       },
       {
         "type": "color",
         "messageKey": "AppKeyInfoColor",
         "label": "Complications Color",
         "defaultValue": "#FFFFFF",
-        "capabilities": ["BW"]
+        "capabilities": [
+          "BW"
+        ]
       },
       {
         "type": "toggle",
@@ -120,7 +178,6 @@
           }
         ],
         "group": "weather"
-
       },
       {
         "type": "slider",
@@ -168,7 +225,9 @@
         "defaultValue": false,
         "label": "Show Steps",
         "description": "Requires Pebble Health",
-        "capabilities": ["HEALTH"]
+        "capabilities": [
+          "HEALTH"
+        ]
       }
     ]
   },

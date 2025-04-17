@@ -82,7 +82,7 @@ static void tick_point_change_positions(GPoint tick_points[][2], GPoint time_poi
 {
     const GPoint center = grect_center_point(area);
     const GPoint origin = area->origin;
-    const GPoint end = GPoint(area->origin.x + area->size.w - 1, area->origin.y + area->size.h - 1);
+    const GPoint end = GPoint(area->origin.x + area->size.w, area->origin.y + area->size.h - 1);
     // TAN30 is represented * 0x100
     // multiply it by the dimension to get the height difference on the rectangle
     // "radius" would be area->size / 2

@@ -149,7 +149,7 @@ var Weather = function (pebble) {
         //console.log('appmessage:', JSON.stringify(dict));
         if (dict['AppKeyWeatherRequest']) {
             var location = localStorage.getItem("local.WeatherLocation");
-            console.log("got location " + location)
+            console.log("got location " + location);
             if (location) {
                 fetchWeatherForLocation(location);
             } else {
@@ -181,8 +181,8 @@ Pebble.addEventListener('webviewclosed', function (e) {
         // HACK: Cheat the system so that persistent keys are still saved on by Clay. 
         // Set local storage for easy access but are not sent over to device
         if (key.substring(0, "local.".length) === "local.") {
-            console.log("getting rid of " + key)
-            localStorage.setItem(key, JSON.stringify(dict[key].value))
+            console.log("getting rid of " + key);
+            localStorage.setItem(key, dict[key].value.trim());
             delete dict[key];
             continue;
         }
