@@ -81,7 +81,7 @@ module.exports = function (_) {
                     min.hide();
                 else
                     min.show();
-            });
+            }).trigger("change");
         }
 
         var themeButtons = clayConfig.getItemsByGroup("themeButtons");
