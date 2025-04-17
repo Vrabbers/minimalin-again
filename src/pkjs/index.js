@@ -61,7 +61,10 @@ var Weather = function (pebble) {
         if (lastGeocode !== null) {
             var geo = JSON.parse(lastGeocode);
             if (geo.location === location) {
-                callbackSuccess(geo.latitude, geo.longitude);
+                if (geo.failed)
+                    callbackError("geocode already failed, don't even try again...")
+                else
+                    callbackSuccess(geo.latitude, geo.longitude);
                 return; 
             }
         }
@@ -74,7 +77,10 @@ var Weather = function (pebble) {
             if (req.status === 200) {
                 var resp = JSON.parse(req.responseText);
                 if (resp.features.length != 1) {
-                    localStorage.setItem("lastCoordFetch", "failed")
+                    localStorage.setItem(GEOCODE_FETCH_CACHE, JSON.stringify({
+                        location: location,
+                        failed: true
+                    }));
                     callbackError("geocode failed: features.length != 1")
                     return;
                 }

@@ -274,6 +274,7 @@ static void weather_requested_callback(DictionaryIterator *iter, Tuple *tuple)
 static void weather_request_failed_callback(DictionaryIterator *iter, Tuple *tuple)
 {
     s_context.weather.failed = true;
+    s_context.weather.timestamp = time(NULL);
     persist_write_data(PersistKeyWeather, &s_context.weather, sizeof(Weather));
     text_block_mark_dirty(s_weather_info);
     quadrants_update(s_quadrants, s_current_time);
@@ -456,12 +457,21 @@ static void tick_layer_update_callback(Layer *layer, GContext *graphic_ctx)
 
 // Weather
 
+#define FAILED_TIMEOUT 5*60
+
+static time_t weather_timeout(const Context *const context)
+{
+    const Weather *const weather = &(context->weather);
+    const Config *const config = context->config;
+    return (weather->failed ? FAILED_TIMEOUT : (config_get_int(config, ConfigKeyRefreshRate)) * 60);
+}
+
 static void weather_info_update_proc(TextBlock *block)
 {
     const Context *const context = (Context *)text_block_get_context(block);
     const Config *const config = context->config;
     const Weather *const weather = &context->weather;
-    const int timeout = (config_get_int(config, ConfigKeyRefreshRate) + 5) * 60;
+    const int timeout = weather_timeout(context);
     const int expiration = weather->timestamp + timeout;
     const bool weather_valid = time(NULL) < expiration;
     char info_buffer[6] = {0};
@@ -480,10 +490,12 @@ static void weather_info_update_proc(TextBlock *block)
     text_block_set_text(block, info_buffer, info_color);
 }
 
+#define WEATHER_TIMEOUT 5000
+
 static void send_weather_request_callback(void *context)
 {
     s_weather_request_timer = NULL;
-    const int timeout = config_get_int(s_config, ConfigKeyRefreshRate) * 60;
+    const int timeout = weather_timeout(&s_context);
     const int expiration = s_context.weather.timestamp + timeout;
     const bool almost_expired = time(NULL) > expiration;
     const bool can_update_weather = (s_context.reset_weather || almost_expired) && s_js_ready;
@@ -500,12 +512,12 @@ static void send_weather_request_callback(void *context)
                 result = app_message_outbox_send();
                 if (result != APP_MSG_OK)
                 {
-                    schedule_weather_request(5000);
+                    schedule_weather_request(WEATHER_TIMEOUT);
                 }
             }
             else
             {
-                schedule_weather_request(5000);
+                schedule_weather_request(WEATHER_TIMEOUT);
             }
         }
     }
