@@ -129,7 +129,7 @@ static const ConfValue CONF_DEFAULTS[CONF_SIZE] = {
 static void update_current_time()
 {
 #ifdef SCREENSHOT
-    time_t screenshot_time = 1454278942;
+    time_t screenshot_time = SCREENSHOT;
     s_current_time = gmtime(&screenshot_time);
 #else
     const time_t temp = time(NULL);

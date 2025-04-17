@@ -1,8 +1,8 @@
-"use strict"
+"use strict";
 
 var Clay = require('pebble-clay');
 var clayConfig = require('./config.json');
-var clayFunction = require('./clayFunction.js')
+var clayFunction = require('./clayFunction.js');
 var clay = new Clay(clayConfig, clayFunction, { autoHandleEvents: false });
 
 var Weather = function (pebble) {
@@ -51,9 +51,9 @@ var Weather = function (pebble) {
         if (!is_day)
             i = i.toUpperCase();
         return i.charCodeAt(0);
-    }
+    };
 
-    var GEOCODE_FETCH_CACHE = "geocodeFetchCache"
+    var GEOCODE_FETCH_CACHE = "geocodeFetchCache";
 
     var fetchLocation = function (location, callbackSuccess, callbackError) {
         var lastGeocode = localStorage.getItem(GEOCODE_FETCH_CACHE);
@@ -62,7 +62,7 @@ var Weather = function (pebble) {
             var geo = JSON.parse(lastGeocode);
             if (geo.location === location) {
                 if (geo.failed)
-                    callbackError("geocode already failed, don't even try again...")
+                    callbackError("geocode already failed, don't even try again...");
                 else
                     callbackSuccess(geo.latitude, geo.longitude);
                 return; 
@@ -81,7 +81,7 @@ var Weather = function (pebble) {
                         location: location,
                         failed: true
                     }));
-                    callbackError("geocode failed: features.length != 1")
+                    callbackError("geocode failed: features.length != 1");
                     return;
                 }
                 var coords = resp.features[0].geometry.coordinates;
@@ -92,31 +92,31 @@ var Weather = function (pebble) {
                     location: location,
                     latitude: lat,
                     longitude: long
-                }
+                };
                 localStorage.setItem(GEOCODE_FETCH_CACHE, JSON.stringify(cache))
                 callbackSuccess(lat, long);
             }
             else {
                 callbackError("geocode error: status " + req.status);
             }
-        }
-        req.onerror = function() { callbackError("geocode error: request failed"); }
+        };
+        req.onerror = function() { callbackError("geocode error: request failed"); };
         req.send(null);
-    }
+    };
 
     var fetchWeatherForLocation = function (location) {
         fetchLocation(location, fetchWeatherForCoordinates, weatherError);
-    }
+    };
 
     var fetchWeatherForCoordinates = function (latitude, longitude) {
         var query = 'latitude=' + latitude + '&longitude=' + longitude;
         fetchWeather(query);
-    }
+    };
 
     var fetchWeather = function (query) {
         localStorage.removeItem("lastCoordFetch");
         var req = new XMLHttpRequest();
-        query += '&current=temperature_2m,weather_code,is_day'
+        query += '&current=temperature_2m,weather_code,is_day';
         console.log('query: ' + query);
         req.open(GET, BASE_URL + '?' + query, true);
         req.onload = function () {
@@ -136,19 +136,19 @@ var Weather = function (pebble) {
         };
         req.onerror = function () { weatherError("weather query failed (onerror)"); };
         req.send(null);
-    }
+    };
 
     var locationSuccess = function (pos) {
         var coordinates = pos.coords;
         fetchWeatherForCoordinates(coordinates.latitude, coordinates.longitude);
-    }
+    };
 
     var weatherError = function (err) {
         console.log('weather fetch error: ' + err);
         pebble.sendAppMessage({
             'AppKeyWeatherFailed': 1
         });
-    }
+    };
 
     pebble.addEventListener('appmessage', function (e) {
         var dict = e.payload;
@@ -193,16 +193,16 @@ Pebble.addEventListener('webviewclosed', function (e) {
             continue;
         }
         else if (key === "AppKeyBluetoothIcon" || key === "AppKeyTemperatureUnit") {
-            dict[key].value = parseInt(dict[key].value)
+            dict[key].value = parseInt(dict[key].value);
         }
     }
 
-    dict["AppKeyConfig"] = 1
+    dict["AppKeyConfig"] = 1;
 
     console.log(JSON.stringify(dict));
 
 
-    var dictConverted = Clay.prepareSettingsForAppMessage(dict)
+    var dictConverted = Clay.prepareSettingsForAppMessage(dict);
 
     console.log(JSON.stringify(dictConverted));
 

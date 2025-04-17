@@ -89,4 +89,4 @@ module.exports = function (_) {
             themeButtons[i].on("click", themeButtonClicked);
         }
     });
-}
+};
