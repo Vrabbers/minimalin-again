@@ -36,7 +36,6 @@ build/
 .lock-waf*
 
 # Misc
-screenshots
 resources/data/
 
 node_modules/

@@ -1,35 +1,15 @@
-#!/usr/bin/env bash
-dt=$(date -I)
+#!/bin/sh
 
-function screenshots(){
-  mkdir -p "screenshots/${2}"
-  pebble install --emulator "$2" -v || exit 1
-  i=0
-  for hour in $(seq 0 4 23)
-  do
-    for minute in $(seq 0 10 50)
-    do
-      export PEBBLE_QEMU_TIME="${dt}T$hour:$minute:00"
-      pebble screenshot --emulator "$2" --no-correction "screenshots/${2}/${1}${i}.png" || exit 1
-      i=$((i+1))
-    done
-  done
-  pebble kill --force
-  killall qemu-pebble
-  tmpdir="$(dirname "$(mktemp tmp.XXXXXXXXXX -ut)")"
-  rm "$tmpdir/pb-emulator.json"
-}
+# call in the project root
+# as ./scripts/screenshots.sh PLATFORM DAY HOUR MINUTE
+mkdir -p design/store/screenshots/$1/
+export SCREENSHOT=$(( 1740787230 + (((($2 - 1) * 24) + $3) * 60 + $4) * 60 ))
+echo $SCREENSHOT
+rebble wipe
+rebble build
+rebble install --emulator $1
+rebble emu-app-config --emulator $1
+sleep 5s
+rebble screenshot design/store/screenshots/$1/$(date -Iseconds).png
+rebble kill
 
-if [[ $1 ]]; then
-  prefix="${1}_"
-else
-  prefix="NO_CONFIG_"
-fi
-
-screenshots $prefix "aplite"
-screenshots $prefix "basalt"
-screenshots $prefix "emery"
-screenshots $prefix "chalk"
-screenshots $prefix "diorite"
-
-wait
