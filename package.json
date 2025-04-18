@@ -52,11 +52,10 @@
       "AppKeyWeatherRequest": 15,
       "AppKeyJsReady": 16,
       "AppKeyVibrateOnTheHour": 17,
-      "AppKeyMilitaryTime": 18,
-      "AppKeyHealthEnabled": 19,
-      "AppKeyBatteryDisplayedAt": 20,
-      "AppKeyQuietTimeVisible": 21,
-      "AppKeyAnimationEnabled": 22
+      "AppKeyHealthEnabled": 18,
+      "AppKeyBatteryDisplayedAt": 19,
+      "AppKeyQuietTimeVisible": 20,
+      "AppKeyAnimationEnabled": 21
     },
     "enableMultiJS": true,
     "displayName": "Minimalin Again",

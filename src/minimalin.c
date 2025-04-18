@@ -33,7 +33,6 @@ typedef enum
     AppKeyWeatherRequest,
     AppKeyJsReady,
     AppKeyVibrateOnTheHour,
-    AppKeyMilitaryTime,
     AppKeyHealthEnabled,
     AppKeyBatteryDisplayedAt,
     AppKeyQuietTimeVisible,
@@ -120,7 +119,7 @@ static const ConfValue CONF_DEFAULTS[CONF_SIZE] = {
     {.key = ConfigKeyRainbowMode, .value = PBL_IF_COLOR_ELSE(CONFIG_RAINBOW_MODE, false)},
     {.key = ConfigKeyWeatherEnabled, .value = CONFIG_WEATHER_ENABLED},
     {.key = ConfigKeyVibrateOnTheHour, .value = false},
-    {.key = ConfigKeyMilitaryTime, .value = CONFIG_MILITARY_TIME},
+    {.key = ConfigKeyVersion, .value = CONF_VERSION},
     {.key = ConfigKeyHealthEnabled, .value = false},
     {.key = ConfigKeyBatteryDisplayedAt, .value = -1},
     {.key = ConfigKeyQuietTimeVisible, .value = true},
@@ -220,12 +219,6 @@ static void config_hourly_vibrate_updated(DictionaryIterator *iter, Tuple *tuple
     config_set_bool(s_config, ConfigKeyVibrateOnTheHour, tuple->value->int8);
 }
 
-static void config_military_time_updated(DictionaryIterator *iter, Tuple *tuple)
-{
-    config_set_bool(s_config, ConfigKeyMilitaryTime, tuple->value->int8);
-    text_block_mark_dirty(s_hour_text);
-}
-
 static void config_health_enabled_updated(DictionaryIterator *iter, Tuple *tuple)
 {
     const bool enabled = tuple->value->int8;
@@ -284,6 +277,7 @@ static void messenger_callback(DictionaryIterator *iter)
 {
     if (dict_find(iter, AppKeyConfig))
     {
+        config_set_int(s_config, ConfigKeyVersion, CONF_VERSION);
         config_save(s_config, PersistKeyConfig);
         s_context.reset_weather = true;
         schedule_weather_request(NOW);
@@ -310,13 +304,12 @@ static bool times_conflicting_north_or_south(const tm *const time)
 static void hour_time_update_proc(TextBlock *block)
 {
     const Context *const context = (Context *)text_block_get_context(block);
-    const Config *const config = context->config;
     const GColor color = config_get_color(s_config, ConfigKeyTimeColor);
     char buffer[] = "00:00";
     const int hour = context->time->tm_hour;
     const int hour_mod_12 = hour % 12;
     const GPoint block_center = get_time_position(hour_mod_12, s_unob_area_anim_progress);
-    const bool military_time = config_get_bool(config, ConfigKeyMilitaryTime);
+    const bool military_time = clock_is_24h_style();
     const int printed_hour = military_time ? hour : hour_mod_12 == 0 ? 12
                                                                      : hour_mod_12;
     if (times_conflicting_north_or_south(context->time))
@@ -867,7 +860,6 @@ static void init()
         {AppKeyTemperatureUnit, config_temperature_unit_updated},
         {AppKeyWeatherEnabled, config_weather_enabled_updated},
         {AppKeyVibrateOnTheHour, config_hourly_vibrate_updated},
-        {AppKeyMilitaryTime, config_military_time_updated},
         {AppKeyHealthEnabled, config_health_enabled_updated},
         {AppKeyBatteryDisplayedAt, config_battery_displayed_at_updated},
         {AppKeyQuietTimeVisible, config_quiet_time_visible_updated},

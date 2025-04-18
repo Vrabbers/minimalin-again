@@ -117,11 +117,6 @@
       },
       {
         "type": "toggle",
-        "messageKey": "AppKeyMilitaryTime",
-        "label": "24h Format"
-      },
-      {
-        "type": "toggle",
         "messageKey": "AppKeyAnimationEnabled",
         "label": "Animations",
         "description": "Controls the animation on watchface start",

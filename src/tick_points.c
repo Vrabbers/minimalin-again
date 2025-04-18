@@ -76,8 +76,6 @@ static GPoint s_time_points[12];
 static GPoint s_new_tick_points[12][2];
 static GPoint s_new_time_points[12];
 
-static AnimationProgress s_anim_prog = ANIMATION_NORMALIZED_MIN;
-
 static void tick_point_change_positions(GPoint tick_points[][2], GPoint time_points[], const GRect *const area)
 {
     const GPoint center = grect_center_point(area);
