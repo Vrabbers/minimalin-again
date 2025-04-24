@@ -104,8 +104,11 @@ bool text_block_get_enabled(const TextBlock *const text_block)
     return text_block->enabled;
 }
 
-void text_block_move(TextBlock *text_block, const GPoint center)
+#define Y_CORRECT 4
+
+void text_block_move(TextBlock *text_block, GPoint center)
 {
+    center.y -= Y_CORRECT;
     text_block->frame = grect_from_center_and_size(center, TEXT_BLOCK_SIZE);
     text_block_mark_dirty(text_block);
 }

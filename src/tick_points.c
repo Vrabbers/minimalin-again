@@ -57,17 +57,15 @@ GPoint get_time_position(int tick, AnimationProgress prog)
 #define TICK_DX 4
 #define TICK_DY 5
 #define TIME_POINT_DX 23
-#define TIME_POINT_DY 21
-#define TIME_POINT_DY2 30
+#define TIME_POINT_DY 25
 #define TIME_Y_OFFSET 2
 #else
 #define TICK_LENGTH 7
 #define TICK_DX 3
 #define TICK_DY 4
 #define TIME_POINT_DX 18
-#define TIME_POINT_DY 15
-#define TIME_POINT_DY2 23
-#define TIME_Y_OFFSET 1
+#define TIME_POINT_DY 19
+#define TIME_Y_OFFSET 0
 #endif
 
 static GPoint s_tick_points[12][2];
@@ -125,9 +123,9 @@ static void tick_point_change_positions(GPoint tick_points[][2], GPoint time_poi
     time_points[2] = GPoint(end.x - TIME_POINT_DX, center.y - two_dy_time);
     time_points[3] = GPoint(end.x - TIME_POINT_DX, center.y - TIME_Y_OFFSET);
     time_points[4] = GPoint(end.x - TIME_POINT_DX, center.y + two_dy_time);
-    time_points[5] = GPoint(center.x + one_dx_time, end.y - TIME_POINT_DY2);
-    time_points[6] = GPoint(center.x, end.y - TIME_POINT_DY2);
-    time_points[7] = GPoint(center.x - one_dx_time, end.y - TIME_POINT_DY2);
+    time_points[5] = GPoint(center.x + one_dx_time, end.y - TIME_POINT_DY);
+    time_points[6] = GPoint(center.x, end.y - TIME_POINT_DY);
+    time_points[7] = GPoint(center.x - one_dx_time, end.y - TIME_POINT_DY);
     time_points[8] = GPoint(origin.x + TIME_POINT_DX, center.y + two_dy_time);
     time_points[9] = GPoint(origin.x + TIME_POINT_DX, center.y - TIME_Y_OFFSET);
     time_points[10] = GPoint(origin.x + TIME_POINT_DX, center.y - two_dy_time);

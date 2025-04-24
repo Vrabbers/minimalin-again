@@ -141,12 +141,12 @@ static void quadrants_try_takeover_quadrant(Quadrants *const quadrants, const In
 
 static GPoint *create_centers_for_rect(GPoint *const centers, const GRect area)
 {
-    const int quarter_width = area.size.w / 4;
-    const int quarter_height = area.size.h / 4;
-    centers[North] = GPoint(area.origin.x + 2 * quarter_width, area.origin.y + quarter_height);
-    centers[South] = GPoint(area.origin.x + 2 * quarter_width, area.origin.y + 3 * quarter_height);
-    centers[West] = GPoint(area.origin.x + quarter_width, area.origin.y + 2 * quarter_height);
-    centers[East] = GPoint(area.origin.x + 3 * quarter_width, area.origin.y + 2 * quarter_height);
+    const int width = area.size.w;
+    const int height = area.size.h;
+    centers[North] = GPoint(area.origin.x + width / 2, area.origin.y + height / 4);
+    centers[South] = GPoint(area.origin.x + width / 2, area.origin.y + (3 * height) / 4);
+    centers[West] = GPoint(area.origin.x + width / 4, area.origin.y + height / 2);
+    centers[East] = GPoint(area.origin.x + (3 * width) / 4, area.origin.y + height / 2);
     return centers;
 }
 

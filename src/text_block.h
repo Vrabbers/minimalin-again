@@ -31,7 +31,7 @@ void text_block_set_enabled(TextBlock *text_block, const bool enable);
 bool text_block_get_enabled(const TextBlock *const text_block);
 void text_block_set_ready(TextBlock *text_block, const bool enable);
 bool text_block_get_ready(const TextBlock *const text_block);
-void text_block_move(TextBlock *text_block, const GPoint center);
+void text_block_move(TextBlock *text_block, GPoint center);
 void text_block_set_context(TextBlock *text_block, void *context);
 void *text_block_get_context(const TextBlock *const text_block);
 void text_block_mark_dirty(TextBlock *text_block);
