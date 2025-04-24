@@ -141,7 +141,10 @@
         "type": "toggle",
         "messageKey": "AppKeyQuietTimeVisible",
         "label": "Quiet Time Icon",
-        "defaultValue": true
+        "defaultValue": true,
+        "capabilities": [
+          "NOT_PLATFORM_APLITE"
+        ]
       },
       {
         "type": "toggle",
