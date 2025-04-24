@@ -450,7 +450,8 @@ static void tick_layer_update_callback(Layer *layer, GContext *graphic_ctx)
 
 // Weather
 
-#define FAILED_TIMEOUT 5*60
+#define FAILED_TIMEOUT 2*60
+#define WEATHER_VISIBLE_TOLERANCE 5*60
 
 static time_t weather_timeout(const Context *const context)
 {
@@ -465,7 +466,7 @@ static void weather_info_update_proc(TextBlock *block)
     const Config *const config = context->config;
     const Weather *const weather = &context->weather;
     const int timeout = weather_timeout(context);
-    const int expiration = weather->timestamp + timeout;
+    const int expiration = weather->timestamp + timeout + WEATHER_VISIBLE_TOLERANCE;
     const bool weather_valid = time(NULL) < expiration;
     char info_buffer[6] = {0};
     if (weather_valid && !weather->failed)

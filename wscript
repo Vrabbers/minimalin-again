@@ -8,12 +8,6 @@
 import os.path
 import os
 
-try:
-    from sh import CommandNotFound, jshint, cat, ErrorReturnCode_2
-    hint = jshint
-except (ImportError, CommandNotFound):
-    hint = None
-
 top = '.'
 out = 'build'
 
